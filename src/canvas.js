@@ -27,7 +27,8 @@ const map = {};
 const commandKeys = [224, 17, 91];
 
 const moveSpeed = 3;
-const movementPenalty = 0.4;
+const movementPenalty = 0.6;
+const backwordsSpeed = 0.3;
 
 // Event Listeners
 addEventListener("mousemove", function (event) {
@@ -58,6 +59,7 @@ function Player(x, y) {
   this.height = 9;
   this.currentSector = undefined;
 
+  this.vecAddition = []
   this.bullets = [];
   this.bulletDelay = 15;
   this.lastBullet = this.bulletDelay;
@@ -111,9 +113,9 @@ function Player(x, y) {
     }
   };
 
-  this.move = function (vecAddition) {
-    this.x += vecAddition[0];
-    this.y += vecAddition[1];
+  this.move = function () {
+    this.x += this.vecAddition[0] * this.getSector().friction;
+    this.y += this.vecAddition[1] * this.getSector().friction;
   };
 
   this.updatePos = function (vecAddition) {
@@ -153,8 +155,8 @@ function Player(x, y) {
 
       }
     }
-
-    this.move(vecAddition);
+    this.vecAddition = vecAddition;
+    this.move();
   };
 
   this.checkForPortal = function (n, vecAddition, a, b) {
@@ -179,7 +181,8 @@ function Player(x, y) {
             vecAddition[0] = 0;
             vecAddition[1] = 0;
           }
-          this.move(vecAddition);
+        this.vecAddition = vecAddition;
+          this.move();
 
           //sets default_z to floor + BodyHeight. Player will move towards this next frame
           // default_z = getSector()->floor() + BODYHEIGHT;
@@ -246,7 +249,9 @@ function Vertex(x, y) {
 function Sector(id, vertices, color) {
   this.id = id;
   this.vCount = vertices.length;
+  this.friction = 1;
   this.color = color;
+  this.floorColor = 'lightgrey';
 
   this.vertices = vertices;
   this.neighbours = [];
@@ -336,7 +341,34 @@ function Sector(id, vertices, color) {
     c.strokeWidth = 2;
     c.stroke();
     c.closePath();
+
+    this.drawFloor();
   };
+
+  this.drawFloor = function () {
+    c.beginPath();
+
+    for (let [index, vertex]of this.vertices.entries()) {
+      if (index == 0) {
+        c.moveTo(vertex.x, vertex.y);
+      } else {
+        c.lineTo(vertex.x, vertex.y);
+      }
+    }
+
+    c.lineTo(this.vertices[0].x, this.vertices[0].y);
+    c.fillStyle = this.floorColor;
+    c.fill();
+    c.closePath();
+  };
+
+  this.setFloorColor = function (color) {
+    this.floorColor = color;
+  }
+
+  this.setFriction = function (friction) {
+    this.friction = friction;
+  }
 }
 
 function Enemy(x, y, hp, sector) {
@@ -393,7 +425,7 @@ let enemys = [];
 let sectors = [];
 
 function handleInput() {
-  let vecAddition = [ 0, 0 ];
+  let vecAddition = [ 0, 0 ], slower = false, back = false;
 
   //up - unused
   if (map[38]) {
@@ -413,13 +445,15 @@ function handleInput() {
   }
   //a - move player left
   if (map[65]) {
-    vecAddition[0] += Math.sin(player.angle) * moveSpeed * movementPenalty;
-    vecAddition[1] -= Math.cos(player.angle) * moveSpeed * movementPenalty;
+    vecAddition[0] += Math.sin(player.angle) * moveSpeed;
+    vecAddition[1] -= Math.cos(player.angle) * moveSpeed;
+    slower = true;
   }
   //d - move player right
   if (map[68]) {
-    vecAddition[0] -= Math.sin(player.angle) * moveSpeed * movementPenalty;
-    vecAddition[1] += Math.cos(player.angle) * moveSpeed * movementPenalty;
+    vecAddition[0] -= Math.sin(player.angle) * moveSpeed;
+    vecAddition[1] += Math.cos(player.angle) * moveSpeed;
+    slower = true;
   }
   //w - move player up
   if (map[87]) {
@@ -428,12 +462,21 @@ function handleInput() {
   }
   //s - move player down
   if (map[83]) {
-    vecAddition[0] -= Math.cos(player.angle) * moveSpeed * movementPenalty;
-    vecAddition[1] -= Math.sin(player.angle) * moveSpeed * movementPenalty;
+    vecAddition[0] -= Math.cos(player.angle) * moveSpeed;
+    vecAddition[1] -= Math.sin(player.angle) * moveSpeed;
+    back = true;
   }
   //fire bullet
   if (map[32]) {
     player.fire();
+  }
+
+  if (back) {
+    vecAddition[0] = vecAddition[0] * backwordsSpeed;
+    vecAddition[1] = vecAddition[1] * backwordsSpeed;
+  } else if(slower) {
+    vecAddition[0] = vecAddition[0] * movementPenalty;
+    vecAddition[1] = vecAddition[1] * movementPenalty;
   }
 
   player.updatePos(vecAddition);
@@ -464,12 +507,16 @@ function init() {
   vertices4.push(new Vertex(400, 500));
   vertices4.push(new Vertex(400, 600));
   vertices4.push(new Vertex(50, 600));
-  vertices4.push(new Vertex(50, 400));
+  vertices4.push(new Vertex(50, 300));
+  vertices4.push(new Vertex(250, 300));
+  vertices4.push(new Vertex(250, 400));
 
   let sector1 = new Sector(1, vertices1, 'red');
   let sector2 = new Sector(2, vertices2, 'blue');
   let sector3 = new Sector(3, vertices3, 'green');
-  let sector4 = new Sector(4, vertices4, 'silver');
+  let sector4 = new Sector(4, vertices4, 'black');
+  sector4.setFloorColor('green');
+  sector4.setFriction(0.7);
 
   sector1.addNeighbour(sector2);
   sector2.addNeighbour(sector1);
@@ -490,11 +537,12 @@ function init() {
 
 function update() {
   handleInput();
-  player.update();
 
   for (let sector of sectors) {
     sector.draw();
   }
+
+  player.update();
 
   for (let enemy of enemys) {
     enemy.update();

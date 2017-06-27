@@ -185,7 +185,8 @@ var map = {};
 var commandKeys = [224, 17, 91];
 
 var moveSpeed = 3;
-var movementPenalty = 0.4;
+var movementPenalty = 0.6;
+var backwordsSpeed = 0.3;
 
 // Event Listeners
 addEventListener("mousemove", function (event) {
@@ -216,6 +217,7 @@ function Player(x, y) {
   this.height = 9;
   this.currentSector = undefined;
 
+  this.vecAddition = [];
   this.bullets = [];
   this.bulletDelay = 15;
   this.lastBullet = this.bulletDelay;
@@ -288,9 +290,9 @@ function Player(x, y) {
     }
   };
 
-  this.move = function (vecAddition) {
-    this.x += vecAddition[0];
-    this.y += vecAddition[1];
+  this.move = function () {
+    this.x += this.vecAddition[0] * this.getSector().friction;
+    this.y += this.vecAddition[1] * this.getSector().friction;
   };
 
   this.updatePos = function (vecAddition) {
@@ -351,8 +353,8 @@ function Player(x, y) {
         }
       }
     }
-
-    this.move(vecAddition);
+    this.vecAddition = vecAddition;
+    this.move();
   };
 
   this.checkForPortal = function (n, vecAddition, a, b) {
@@ -376,7 +378,8 @@ function Player(x, y) {
         vecAddition[0] = 0;
         vecAddition[1] = 0;
       }
-      this.move(vecAddition);
+      this.vecAddition = vecAddition;
+      this.move();
 
       //sets default_z to floor + BodyHeight. Player will move towards this next frame
       // default_z = getSector()->floor() + BODYHEIGHT;
@@ -447,7 +450,9 @@ function Vertex(x, y) {
 function Sector(id, vertices, color) {
   this.id = id;
   this.vCount = vertices.length;
+  this.friction = 1;
   this.color = color;
+  this.floorColor = 'lightgrey';
 
   this.vertices = vertices;
   this.neighbours = [];
@@ -620,35 +625,30 @@ function Sector(id, vertices, color) {
     c.strokeWidth = 2;
     c.stroke();
     c.closePath();
+
+    this.drawFloor();
   };
-}
 
-function Enemy(x, y, hp, sector) {
-  this.x = x;
-  this.y = y;
-  this.color = 'yellow';
-  this.radius = 20;
+  this.drawFloor = function () {
+    c.beginPath();
 
-  this.hp = hp;
-  this.sector = sector;
-
-  this.isHit = function () {
     var _iteratorNormalCompletion7 = true;
     var _didIteratorError7 = false;
     var _iteratorError7 = undefined;
 
     try {
-      for (var _iterator7 = player.bullets[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-        var bullet = _step7.value;
+      for (var _iterator7 = this.vertices.entries()[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+        var _ref3 = _step7.value;
 
-        if (util.getDistance(bullet.x, bullet.y, this.x, this.y) < bullet.radius + this.radius && this.hp > 0) {
-          this.radius -= 5;
-          bullet.lifetime = 0;
-          this.hp--;
-        }
-        if (this.hp == 0) {
-          console.log('dead');
-          this.color = 'red';
+        var _ref4 = _slicedToArray(_ref3, 2);
+
+        var index = _ref4[0];
+        var vertex = _ref4[1];
+
+        if (index == 0) {
+          c.moveTo(vertex.x, vertex.y);
+        } else {
+          c.lineTo(vertex.x, vertex.y);
         }
       }
     } catch (err) {
@@ -662,6 +662,64 @@ function Enemy(x, y, hp, sector) {
       } finally {
         if (_didIteratorError7) {
           throw _iteratorError7;
+        }
+      }
+    }
+
+    c.lineTo(this.vertices[0].x, this.vertices[0].y);
+    c.fillStyle = this.floorColor;
+    c.fill();
+    c.closePath();
+  };
+
+  this.setFloorColor = function (color) {
+    this.floorColor = color;
+  };
+
+  this.setFriction = function (friction) {
+    this.friction = friction;
+  };
+}
+
+function Enemy(x, y, hp, sector) {
+  this.x = x;
+  this.y = y;
+  this.color = 'yellow';
+  this.radius = 20;
+
+  this.hp = hp;
+  this.sector = sector;
+
+  this.isHit = function () {
+    var _iteratorNormalCompletion8 = true;
+    var _didIteratorError8 = false;
+    var _iteratorError8 = undefined;
+
+    try {
+      for (var _iterator8 = player.bullets[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+        var bullet = _step8.value;
+
+        if (util.getDistance(bullet.x, bullet.y, this.x, this.y) < bullet.radius + this.radius && this.hp > 0) {
+          this.radius -= 5;
+          bullet.lifetime = 0;
+          this.hp--;
+        }
+        if (this.hp == 0) {
+          console.log('dead');
+          this.color = 'red';
+        }
+      }
+    } catch (err) {
+      _didIteratorError8 = true;
+      _iteratorError8 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion8 && _iterator8.return) {
+          _iterator8.return();
+        }
+      } finally {
+        if (_didIteratorError8) {
+          throw _iteratorError8;
         }
       }
     }
@@ -702,7 +760,9 @@ var enemys = [];
 var sectors = [];
 
 function handleInput() {
-  var vecAddition = [0, 0];
+  var vecAddition = [0, 0],
+      slower = false,
+      back = false;
 
   //up - unused
   if (map[38]) {
@@ -722,13 +782,15 @@ function handleInput() {
   }
   //a - move player left
   if (map[65]) {
-    vecAddition[0] += Math.sin(player.angle) * moveSpeed * movementPenalty;
-    vecAddition[1] -= Math.cos(player.angle) * moveSpeed * movementPenalty;
+    vecAddition[0] += Math.sin(player.angle) * moveSpeed;
+    vecAddition[1] -= Math.cos(player.angle) * moveSpeed;
+    slower = true;
   }
   //d - move player right
   if (map[68]) {
-    vecAddition[0] -= Math.sin(player.angle) * moveSpeed * movementPenalty;
-    vecAddition[1] += Math.cos(player.angle) * moveSpeed * movementPenalty;
+    vecAddition[0] -= Math.sin(player.angle) * moveSpeed;
+    vecAddition[1] += Math.cos(player.angle) * moveSpeed;
+    slower = true;
   }
   //w - move player up
   if (map[87]) {
@@ -737,12 +799,21 @@ function handleInput() {
   }
   //s - move player down
   if (map[83]) {
-    vecAddition[0] -= Math.cos(player.angle) * moveSpeed * movementPenalty;
-    vecAddition[1] -= Math.sin(player.angle) * moveSpeed * movementPenalty;
+    vecAddition[0] -= Math.cos(player.angle) * moveSpeed;
+    vecAddition[1] -= Math.sin(player.angle) * moveSpeed;
+    back = true;
   }
   //fire bullet
   if (map[32]) {
     player.fire();
+  }
+
+  if (back) {
+    vecAddition[0] = vecAddition[0] * backwordsSpeed;
+    vecAddition[1] = vecAddition[1] * backwordsSpeed;
+  } else if (slower) {
+    vecAddition[0] = vecAddition[0] * movementPenalty;
+    vecAddition[1] = vecAddition[1] * movementPenalty;
   }
 
   player.updatePos(vecAddition);
@@ -776,12 +847,16 @@ function init() {
   vertices4.push(new Vertex(400, 500));
   vertices4.push(new Vertex(400, 600));
   vertices4.push(new Vertex(50, 600));
-  vertices4.push(new Vertex(50, 400));
+  vertices4.push(new Vertex(50, 300));
+  vertices4.push(new Vertex(250, 300));
+  vertices4.push(new Vertex(250, 400));
 
   var sector1 = new Sector(1, vertices1, 'red');
   var sector2 = new Sector(2, vertices2, 'blue');
   var sector3 = new Sector(3, vertices3, 'green');
-  var sector4 = new Sector(4, vertices4, 'silver');
+  var sector4 = new Sector(4, vertices4, 'black');
+  sector4.setFloorColor('green');
+  sector4.setFriction(0.7);
 
   sector1.addNeighbour(sector2);
   sector2.addNeighbour(sector1);
@@ -802,42 +877,16 @@ function init() {
 
 function update() {
   handleInput();
-  player.update();
-
-  var _iteratorNormalCompletion8 = true;
-  var _didIteratorError8 = false;
-  var _iteratorError8 = undefined;
-
-  try {
-    for (var _iterator8 = sectors[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-      var sector = _step8.value;
-
-      sector.draw();
-    }
-  } catch (err) {
-    _didIteratorError8 = true;
-    _iteratorError8 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion8 && _iterator8.return) {
-        _iterator8.return();
-      }
-    } finally {
-      if (_didIteratorError8) {
-        throw _iteratorError8;
-      }
-    }
-  }
 
   var _iteratorNormalCompletion9 = true;
   var _didIteratorError9 = false;
   var _iteratorError9 = undefined;
 
   try {
-    for (var _iterator9 = enemys[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-      var enemy = _step9.value;
+    for (var _iterator9 = sectors[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+      var sector = _step9.value;
 
-      enemy.update();
+      sector.draw();
     }
   } catch (err) {
     _didIteratorError9 = true;
@@ -850,6 +899,33 @@ function update() {
     } finally {
       if (_didIteratorError9) {
         throw _iteratorError9;
+      }
+    }
+  }
+
+  player.update();
+
+  var _iteratorNormalCompletion10 = true;
+  var _didIteratorError10 = false;
+  var _iteratorError10 = undefined;
+
+  try {
+    for (var _iterator10 = enemys[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+      var enemy = _step10.value;
+
+      enemy.update();
+    }
+  } catch (err) {
+    _didIteratorError10 = true;
+    _iteratorError10 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion10 && _iterator10.return) {
+        _iterator10.return();
+      }
+    } finally {
+      if (_didIteratorError10) {
+        throw _iteratorError10;
       }
     }
   }
