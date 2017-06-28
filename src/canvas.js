@@ -29,6 +29,9 @@ const commandKeys = [224, 17, 91];
 const moveSpeed = 3;
 const movementPenalty = 0.6;
 const backwordsSpeed = 0.3;
+const playerMaxHp = 5;
+
+let entityId = 1;
 
 // Event Listeners
 addEventListener("mousemove", function (event) {
@@ -51,12 +54,14 @@ onkeydown = onkeyup = function(event){
 }
 
 // Player
-function Player(x, y) {
+function Player(x, y, id) {
   this.x = x;
   this.y = y;
   this.angle = 0;
   this.width = 15;
   this.height = 9;
+  this.hp = playerMaxHp;
+  this.id = id;
   this.currentSector = undefined;
 
   this.vecAddition = []
@@ -78,27 +83,6 @@ function Player(x, y) {
     this.draw();
   };
 
-  this.draw = function () {
-    c.beginPath();
-    c.moveTo(this.x, this.y);
-    c.lineTo(Math.cos(this.angle) * 15 + this.x, Math.sin(this.angle) * 15 + this.y);
-    c.strokeStyle = 'red';
-    c.strokeWidth = 2;
-    c.stroke();
-    c.closePath();
-
-    c.save();
-    c.beginPath();
-    c.translate( (this.x + this.width/2) - (this.width/2), (this.y + this.height/2) - (this.height/2));
-    c.rotate(this.angle);
-    c.fillStyle = 'black';
-    c.rect(-this.width/2, -this.height/2, this.width, this.height);
-    c.fill();
-    c.stroke();
-    c.closePath();
-    c.restore();
-  };
-
   this.fire = function () {
     if (this.lastBullet >= this.bulletDelay) {
       this.bullets.push(
@@ -106,7 +90,12 @@ function Player(x, y) {
           this.x,
           this.y,
           (Math.cos(this.angle) + (this.x)) - (this.x),
-          (Math.sin(this.angle) + (this.y)) - (this.y)
+          (Math.sin(this.angle) + (this.y)) - (this.y),
+          this.getSector(),
+          60,
+          5,
+          'rgb(255,215,0)',
+          this
         )
       );
       this.lastBullet = 0;
@@ -173,21 +162,21 @@ function Player(x, y) {
         // if(((hole_high - hole_low) >= ((isCrouching ? CROUCHHEIGHT : BODYHEIGHT)+HEADSIZE)) && (z() <= hole_high) && !isDoorLocked &&
         //   ((!isFalling && floor_diff <= KNEEHEIGHT) || (isFalling && z()-KNEEHEIGHT >= hole_low)))
         // {
-          this.setSector(n.id);
-          //after changing sector, will you hit a wall?
-          if( (Math.min(a.x, b.x) > this.x+vecAddition[0] || this.x+vecAddition[0] > Math.max(a.x, b.x)) &&
-            (Math.min(a.y, b.y) > this.y+vecAddition[1] || this.y+vecAddition[1] > Math.max(a.y, b.y))  ){
-            //if so, stop player
-            vecAddition[0] = 0;
-            vecAddition[1] = 0;
-          }
+        this.setSector(n.id);
+        //after changing sector, will you hit a wall?
+        if( (Math.min(a.x, b.x) > this.x+vecAddition[0] || this.x+vecAddition[0] > Math.max(a.x, b.x)) &&
+          (Math.min(a.y, b.y) > this.y+vecAddition[1] || this.y+vecAddition[1] > Math.max(a.y, b.y))  ){
+          //if so, stop player
+          vecAddition[0] = 0;
+          vecAddition[1] = 0;
+        }
         this.vecAddition = vecAddition;
-          this.move();
+        this.move();
 
           //sets default_z to floor + BodyHeight. Player will move towards this next frame
           // default_z = getSector()->floor() + BODYHEIGHT;
           // setVelocity(velo);		//if we fall after sector-change we fall forward.
-          return true;
+        return true;
         // }
       }
       return false;
@@ -200,34 +189,145 @@ function Player(x, y) {
   this.getSector = function () {
     return sectors.filter(sector => sector.id === this.currentSector)[0];
   };
+
+  this.hit = function () {
+    if (this.hp > 1) {
+      this.hp--;
+    } else {
+      console.log('GAME OVER');
+    }
+  };
+
+  this.draw = function () {
+    c.beginPath();
+    c.moveTo(this.x, this.y);
+    c.lineTo(Math.cos(this.angle) * 15 + this.x, Math.sin(this.angle) * 15 + this.y);
+    c.strokeStyle = 'dimgrey';
+    c.lineWidth = 4;
+    c.stroke();
+    c.closePath();
+    c.lineWidth = 1;
+
+    c.save();
+    c.beginPath();
+    c.translate( (this.x + this.width/2) - (this.width/2), (this.y + this.height/2) - (this.height/2));
+    c.rotate(this.angle);
+    c.fillStyle = 'black';
+    c.rect(-this.width/2, -this.height/2, this.width, this.height);
+    c.fill();
+    c.stroke();
+    c.closePath();
+    c.restore();
+
+    //HP bar over player
+    c.beginPath();
+    c.moveTo(this.x - this.width/2, this.y - this.height * 2);
+    c.lineTo(this.x + (this.width/2), this.y - this.height * 2);
+    c.strokeStyle = 'red';
+    c.lineWidth = 3;
+    c.stroke();
+    c.closePath();
+    c.lineWidth = 1;
+
+    c.beginPath();
+    c.moveTo(this.x - this.width/2, this.y - this.height * 2);
+    c.lineTo(this.x  + ((this.width/playerMaxHp) * this.hp) - this.width/2, this.y - this.height * 2);
+    c.strokeStyle = 'green';
+    c.lineWidth = 3;
+    c.stroke();
+    c.closePath();
+    c.lineWidth = 1;
+  };
 }
 
 // Bullet
-function Bullet(x, y, dx, dy) {
+function Bullet(x, y, dx, dy, sector, lifetime, fireSpeed, color, owner) {
   this.x = x;
   this.y = y;
-  this.radius = 2;
-  this.fireSpeed = 5;
+  this.radius = 3;
+  this.fireSpeed = fireSpeed;
   this.dx = dx * this.fireSpeed;
   this.dy = dy * this.fireSpeed;
-  this.lifetime = 60;
+  this.lifetime = lifetime;
+  this.sector = sector;
+  this.color = color;
+  this.owner = owner;
 
   this.update = function () {
-    this.x += this.dx;
-    this.y += this.dy;
-    this.lifetime -= 1;
+    //Check if bullet hit players og enemy
+    if(this.owner instanceof Player) {
+      this.hitCheckEnemy();
+    } else {
+      this.hitCheckPlayer();
+    }
+
+    let vertices = this.sector.vertices;
+    let neighbours = this.sector.neighbours;
+
+    for(let i = 0; i < vertices.length; i++) {
+      let a = vertices[i], b = vertices[i + 1];
+      let portal = false;
+
+      //Loop around for last corner
+      if (i == vertices.length - 1) {
+        b = vertices[0];
+      }
+
+      if (vectorUtil.intersectBox(this.x, this.y, (this.x ) + this.dx, (this.y ) + this.dy, a.x, a.y, b.x, b.y) &&
+        vectorUtil.pointSide((this.x ) + this.dx, (this.y ) + this.dy, a.x, a.y, b.x, b.y) < 0) {
+
+        for (let n of neighbours) {
+          if (n.containsVertices(a, b)) {
+            this.sector = n;
+            portal = true;
+          }
+        }
+        if (!portal) {
+          this.lifetime = 0;
+        }
+      }
+    }
 
     if(this.lifetime > 0) {
+      this.x += this.dx;
+      this.y += this.dy;
+      this.lifetime -= 1;
+
       this.draw();
     }
   }
 
+  this.hitCheckEnemy = function () {
+    for (let enemy of this.sector.enemies) {
+      if (util.getDistance(enemy.x, enemy.y, this.x, this.y) < this.radius + enemy.radius && enemy.hp > 0) {
+        enemy.hit();
+        this.stopBullet();
+      }
+    }
+  };
+
+  this.hitCheckPlayer = function () {
+    for (let player of this.sector.players) {
+      if (util.getDistance(player.x, player.y, this.x, this.y) < this.radius + player.height) {
+        player.hit();
+        this.stopBullet();
+      }
+    }
+  };
+
   this.draw = function () {
     c.beginPath();
     c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-    c.fillStyle = 'red';
+    c.fillStyle = this.color;
     c.fill();
+    c.lineWidth = 0.3;
+    c.stroke();
     c.closePath();
+    c.lineWidth = 1;
+  };
+
+  this.stopBullet = function () {
+    this.lifetime = 0;
   }
 
   this.delete = function () {
@@ -255,6 +355,8 @@ function Sector(id, vertices, color) {
 
   this.vertices = vertices;
   this.neighbours = [];
+  this.enemies = [];
+  this.players = [];
 
   this.addVertex = function (vertex) {
     this.vertices.push(vertex);
@@ -362,41 +464,98 @@ function Sector(id, vertices, color) {
     c.closePath();
   };
 
+  this.update = function () {
+    this.draw();
+
+    for (let [index, enemy] of this.enemies.entries()) {
+      enemy.update();
+
+      if(enemy.hp <= 0 && enemy.bullets.length == 0) {
+        this.enemies.splice(index, 1);
+      }
+    }
+  }
+
   this.setFloorColor = function (color) {
     this.floorColor = color;
-  }
+  };
 
   this.setFriction = function (friction) {
     this.friction = friction;
-  }
+  };
+
+  this.addPlayer= function (player) {
+    this.players.push(player);
+  };
+
+  this.addEnemy= function (enemy) {
+    this.enemies.push(enemy);
+  };
+
+  this.setEnemy= function (enemies) {
+    this.enemies = enemies;
+  };
 }
 
-function Enemy(x, y, hp, sector) {
+function Enemy(x, y, hp, sector, id) {
   this.x = x;
   this.y = y;
   this.color = 'yellow';
   this.radius = 20;
+  this.id = id;
+
+  this.attackDelay = 140;
+  this.lastAttack = this.attackDelay;
+  this.bullets = [];
 
   this.hp = hp;
   this.sector = sector;
 
-  this.isHit = function () {
-    for (let bullet of player.bullets) {
-      if (util.getDistance(bullet.x, bullet.y, this.x, this.y) < bullet.radius + this.radius && this.hp > 0) {
-        this.radius -= 5;
-        bullet.lifetime = 0;
-        this.hp--;
-      }
-      if (this.hp == 0) {
-        console.log('dead');
-        this.color = 'red';
-      }
-    }
+  this.hit = function () {
+    this.radius -= 5;
+    this.hp--;
   };
 
   this.update = function () {
-    this.isHit();
-    this.draw();
+
+    if (this.lastAttack >= this.attackDelay && this.hp > 0) {
+      if (player.getSector().id == this.getSector().id) {
+        this.attack();
+      }
+    }
+
+    for (let [index, bullet] of this.bullets.entries()) {
+      bullet.update();
+
+      if (bullet.lifetime <= 0) {
+        this.bullets.splice(index, 1);
+      }
+    }
+
+    this.lastAttack++;
+
+    if (this.hp > 0) {
+      this.draw();
+    }
+  };
+
+  this.attack = function () {
+    for (let i = 0; i < 6; i++) {
+      this.bullets.push(
+        new Bullet(
+          this.x,
+          this.y,
+          util.randomIntFromRange(-2, 2),
+          util.randomIntFromRange(-2, 2),
+          this.getSector(),
+          140,
+          1,
+          'red',
+          this
+        )
+      );
+    }
+    this.lastAttack = 0;
   };
 
   this.draw = function () {
@@ -419,9 +578,8 @@ function Enemy(x, y, hp, sector) {
 }
 
 // Implementation
-let player = new Player(150, 100);
+let player = new Player(150, 100, entityId++);
 
-let enemys = [];
 let sectors = [];
 
 function handleInput() {
@@ -484,12 +642,12 @@ function handleInput() {
 
 function init() {
   let vertices1 = [], vertices2 = [], vertices3 = [], vertices4 = [];
-  vertices1.push(new Vertex(100, 75));
-  vertices1.push(new Vertex(300, 75));
+  vertices1.push(new Vertex(50, 25));
+  vertices1.push(new Vertex(300, 25));
   vertices1.push(new Vertex(300, 125));
   vertices1.push(new Vertex(300, 175));
   vertices1.push(new Vertex(300, 250));
-  vertices1.push(new Vertex(100, 250));
+  vertices1.push(new Vertex(50, 250));
 
   vertices2.push(new Vertex(300, 125));
   vertices2.push(new Vertex(500, 125));
@@ -511,11 +669,11 @@ function init() {
   vertices4.push(new Vertex(250, 300));
   vertices4.push(new Vertex(250, 400));
 
-  let sector1 = new Sector(1, vertices1, 'red');
-  let sector2 = new Sector(2, vertices2, 'blue');
-  let sector3 = new Sector(3, vertices3, 'green');
+  let sector1 = new Sector(1, vertices1, 'black');
+  let sector2 = new Sector(2, vertices2, 'black');
+  let sector3 = new Sector(3, vertices3, 'black');
   let sector4 = new Sector(4, vertices4, 'black');
-  sector4.setFloorColor('green');
+  sector4.setFloorColor('darkolivegreen');
   sector4.setFriction(0.7);
 
   sector1.addNeighbour(sector2);
@@ -531,22 +689,19 @@ function init() {
   sectors.push(sector4);
 
   player.setSector(1);
+  sector1.addPlayer(player);
 
-  enemys.push(new Enemy(200, 200, 3, 1));
+  sector1.addEnemy(new Enemy(200, 200, 3, 1, entityId++));
 }
 
 function update() {
   handleInput();
 
   for (let sector of sectors) {
-    sector.draw();
+    sector.update();
   }
 
   player.update();
-
-  for (let enemy of enemys) {
-    enemy.update();
-  }
 }
 
 // Animation Loop
