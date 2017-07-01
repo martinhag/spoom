@@ -58,6 +58,9 @@ function Player(x, y, id) {
   this.move = function () {
     this.x += this.vecAddition[0] * this.getSector().friction;
     this.y += this.vecAddition[1] * this.getSector().friction;
+
+    config.xView = -this.x;
+    config.yView = -this.y;
   };
 
   this.updatePos = function (vecAddition) {
@@ -87,13 +90,13 @@ function Player(x, y, id) {
         vecAddition[0] =  xd * (vecAddition[0]*xd + yd*vecAddition[1]) / (xd*xd + yd*yd);
         vecAddition[1] =  yd * (vecAddition[0]*xd + yd*vecAddition[1]) / (xd*xd + yd*yd);
 
-        // //will you slide past this wall?
-        if( (Math.min(a.x, b.x) > this.x+vecAddition[0] || this.x+vecAddition[0] > Math.max(a.x, b.x)) &&
-          (Math.min(a.y, b.y) > this.y+vecAddition[1] || this.y+vecAddition[1] > Math.max(a.y, b.y))  ){
-          //if so, stop player
-          vecAddition[0] = 0;
-          vecAddition[1] = 0;
-        }
+        // //will you slide past this wall? - Removed for now
+        // if( (Math.min(a.x, b.x) > this.x+vecAddition[0] || this.x+vecAddition[0] > Math.max(a.x, b.x)) &&
+        //   (Math.min(a.y, b.y) > this.y+vecAddition[1] || this.y+vecAddition[1] > Math.max(a.y, b.y))  ){
+        //   //if so, stop player
+        //   vecAddition[0] = 0;
+        //   vecAddition[1] = 0;
+        // }
 
       }
     }
@@ -103,19 +106,13 @@ function Player(x, y, id) {
 
   this.checkForPortal = function (n, vecAddition, a, b) {
     if (n.containsVertices(a, b)) {
-      // let hole_low  = n < 0 ?  9e9 : max(getSector()->floor(), n->floor());//height of the heigest floor - gives opening
-      // let hole_high = n < 0 ? -9e9 : min(getSector()->ceiling(),  n->ceiling());//height of the lowest floor- gives opening
-      // let floor_diff = n->floor() - getSector()->floor();// height differens of sector floors
-
       //is this wall a door? and if so, is it locked?
       // door* door_ = n->getWallDoor(a,b);
       // bool isDoorLocked = (door_ != NULL && door_->doorLocked());
 
-      // can player walk/jump through opening?
-      // if(((hole_high - hole_low) >= ((isCrouching ? CROUCHHEIGHT : BODYHEIGHT)+HEADSIZE)) && (z() <= hole_high) && !isDoorLocked &&
-      //   ((!isFalling && floor_diff <= KNEEHEIGHT) || (isFalling && z()-KNEEHEIGHT >= hole_low)))
-      // {
+      this.getSector().removePlayer(this);
       this.setSector(n.id);
+      this.getSector().addPlayer(this);
       //after changing sector, will you hit a wall?
       if( (Math.min(a.x, b.x) > this.x+vecAddition[0] || this.x+vecAddition[0] > Math.max(a.x, b.x)) &&
         (Math.min(a.y, b.y) > this.y+vecAddition[1] || this.y+vecAddition[1] > Math.max(a.y, b.y))  ){
@@ -125,12 +122,8 @@ function Player(x, y, id) {
       }
       this.vecAddition = vecAddition;
       this.move();
-
-      //sets default_z to floor + BodyHeight. Player will move towards this next frame
-      // default_z = getSector()->floor() + BODYHEIGHT;
-      // setVelocity(velo);		//if we fall after sector-change we fall forward.
+      
       return true;
-      // }
     }
     return false;
   };
