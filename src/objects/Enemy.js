@@ -15,6 +15,7 @@ function Enemy(x, y, hp, sector, id) {
 
   this.attackDelay = 140;
   this.lastAttack = this.attackDelay;
+  this.numberOfBullets = 9;
   this.bullets = [];
 
   this.hp = hp;
@@ -51,13 +52,18 @@ function Enemy(x, y, hp, sector, id) {
   };
 
   this.attack = function () {
-    for (let i = 0; i < 6; i++) {
+    let randomOffset = util.randomIntFromRange(-90, 90);
+
+    for (let i = 0; i < this.numberOfBullets; i++) {
+      let angle = (((360/this.numberOfBullets) * (i + 1) * Math.PI) / 180) + randomOffset;
+      let speed = util.randomIntFromRange(2,4);
+
       this.bullets.push(
         new Bullet(
           this.x,
           this.y,
-          util.randomIntFromRange(-2, 2),
-          util.randomIntFromRange(-2, 2),
+          Math.cos(angle) * speed,
+          Math.sin(angle) * speed,
           this.getSector(),
           140,
           1,
