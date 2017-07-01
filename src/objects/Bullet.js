@@ -59,10 +59,8 @@ function Bullet(x, y, dx, dy, sector, lifetime, fireSpeed, color, owner) {
       this.x += this.dx;
       this.y += this.dy;
       this.lifetime -= 1;
-
-      this.draw();
     }
-  }
+  };
 
   this.hitCheckEnemy = function () {
     for (let enemy of this.sector.enemies) {

@@ -90,7 +90,7 @@ function Sector(id, vertices, color) {
         }
 
         if (!portal) {
-          config.c.lineTo(a.x, a.y)
+          config.c.lineTo(a.x, a.y);
 
           if (i == this.vertices.length-1) {
             config.c.lineTo(b.x, b.y);
@@ -104,11 +104,12 @@ function Sector(id, vertices, color) {
     config.c.strokeWidth = 2;
     config.c.stroke();
     config.c.closePath();
-    
+
     this.drawFloor();
   };
 
   this.drawFloor = function () {
+    config.c.save();
     config.c.beginPath();
 
     for (let [index, vertex]of this.vertices.entries()) {
@@ -121,13 +122,14 @@ function Sector(id, vertices, color) {
 
     config.c.lineTo(this.vertices[0].x, this.vertices[0].y);
     config.c.fillStyle = this.floorColor;
+    // config.c.strokeStyle = this.floorColor;
     config.c.fill();
+    // config.c.stroke();
     config.c.closePath();
+    config.c.restore();
   };
 
   this.update = function () {
-    this.draw();
-
     for (let [index, enemy] of this.enemies.entries()) {
       //todo: update enemy here
       if(enemy.hp <= 0 && enemy.bullets.length == 0) {

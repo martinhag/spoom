@@ -101,10 +101,6 @@ function init() {
 function update() {
   inputHandler.handleInput();
 
-  config.c.save();
-  // center "camera" over player
-  config.c.translate(config.xView + config.canvas.width/2, config.yView + config.canvas.height/2);
-
   for (let sector of config.sectors) {
     sector.update();
   }
@@ -114,6 +110,35 @@ function update() {
   }
 
   config.player.update();
+}
+
+function draw() {
+  config.c.save();
+  // center "camera" over player
+  config.c.translate(config.xView + config.canvas.width/2, config.yView + config.canvas.height/2);
+
+  for (let sector of config.sectors) {
+    sector.draw();
+  }
+
+  for (let enemy of config.enemies) {
+    for (let bullet of enemy.bullets) {
+      if (bullet.lifetime > 0) {
+        bullet.draw();
+      }
+    }
+    if (enemy.hp > 0) {
+      enemy.draw();
+    }
+  }
+
+  for (let bullet of config.player.bullets) {
+    if (bullet.lifetime > 0) {
+      bullet.draw();
+    }
+  }
+  config.player.draw();
+
   config.c.restore();
 }
 
@@ -123,6 +148,7 @@ function animate() {
   config.c.clearRect(0, 0, config.canvas.width, config.canvas.height);
 
   update();
+  draw();
 }
 
 init();

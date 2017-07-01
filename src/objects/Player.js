@@ -32,8 +32,6 @@ function Player(x, y, id) {
     }
 
     this.lastBullet++;
-
-    this.draw();
   };
 
   this.fire = function () {

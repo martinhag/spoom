@@ -45,10 +45,6 @@ function Enemy(x, y, hp, sector, id) {
     }
 
     this.lastAttack++;
-
-    if (this.hp > 0) {
-      this.draw();
-    }
   };
 
   this.attack = function () {

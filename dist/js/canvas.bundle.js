@@ -196,8 +196,6 @@ function Player(x, y, id) {
     }
 
     this.lastBullet++;
-
-    this.draw();
   };
 
   this.fire = function () {
@@ -589,6 +587,7 @@ function Sector(id, vertices, color) {
   };
 
   this.drawFloor = function () {
+    _config2.default.c.save();
     _config2.default.c.beginPath();
 
     var _iteratorNormalCompletion5 = true;
@@ -627,13 +626,14 @@ function Sector(id, vertices, color) {
 
     _config2.default.c.lineTo(this.vertices[0].x, this.vertices[0].y);
     _config2.default.c.fillStyle = this.floorColor;
+    // config.c.strokeStyle = this.floorColor;
     _config2.default.c.fill();
+    // config.c.stroke();
     _config2.default.c.closePath();
+    _config2.default.c.restore();
   };
 
   this.update = function () {
-    this.draw();
-
     var _iteratorNormalCompletion6 = true;
     var _didIteratorError6 = false;
     var _iteratorError6 = undefined;
@@ -819,10 +819,6 @@ function Enemy(x, y, hp, sector, id) {
     }
 
     this.lastAttack++;
-
-    if (this.hp > 0) {
-      this.draw();
-    }
   };
 
   this.attack = function () {
@@ -1050,8 +1046,6 @@ function Bullet(x, y, dx, dy, sector, lifetime, fireSpeed, color, owner) {
       this.x += this.dx;
       this.y += this.dy;
       this.lifetime -= 1;
-
-      this.draw();
     }
   };
 
@@ -1380,10 +1374,6 @@ function init() {
 function update() {
   inputHandler.handleInput();
 
-  _config2.default.c.save();
-  // center "camera" over player
-  _config2.default.c.translate(_config2.default.xView + _config2.default.canvas.width / 2, _config2.default.yView + _config2.default.canvas.height / 2);
-
   var _iteratorNormalCompletion = true;
   var _didIteratorError = false;
   var _iteratorError = undefined;
@@ -1435,6 +1425,120 @@ function update() {
   }
 
   _config2.default.player.update();
+}
+
+function draw() {
+  _config2.default.c.save();
+  // center "camera" over player
+  _config2.default.c.translate(_config2.default.xView + _config2.default.canvas.width / 2, _config2.default.yView + _config2.default.canvas.height / 2);
+
+  var _iteratorNormalCompletion3 = true;
+  var _didIteratorError3 = false;
+  var _iteratorError3 = undefined;
+
+  try {
+    for (var _iterator3 = _config2.default.sectors[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+      var sector = _step3.value;
+
+      sector.draw();
+    }
+  } catch (err) {
+    _didIteratorError3 = true;
+    _iteratorError3 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion3 && _iterator3.return) {
+        _iterator3.return();
+      }
+    } finally {
+      if (_didIteratorError3) {
+        throw _iteratorError3;
+      }
+    }
+  }
+
+  var _iteratorNormalCompletion4 = true;
+  var _didIteratorError4 = false;
+  var _iteratorError4 = undefined;
+
+  try {
+    for (var _iterator4 = _config2.default.enemies[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      var enemy = _step4.value;
+      var _iteratorNormalCompletion6 = true;
+      var _didIteratorError6 = false;
+      var _iteratorError6 = undefined;
+
+      try {
+        for (var _iterator6 = enemy.bullets[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+          var _bullet = _step6.value;
+
+          if (_bullet.lifetime > 0) {
+            _bullet.draw();
+          }
+        }
+      } catch (err) {
+        _didIteratorError6 = true;
+        _iteratorError6 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion6 && _iterator6.return) {
+            _iterator6.return();
+          }
+        } finally {
+          if (_didIteratorError6) {
+            throw _iteratorError6;
+          }
+        }
+      }
+
+      if (enemy.hp > 0) {
+        enemy.draw();
+      }
+    }
+  } catch (err) {
+    _didIteratorError4 = true;
+    _iteratorError4 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion4 && _iterator4.return) {
+        _iterator4.return();
+      }
+    } finally {
+      if (_didIteratorError4) {
+        throw _iteratorError4;
+      }
+    }
+  }
+
+  var _iteratorNormalCompletion5 = true;
+  var _didIteratorError5 = false;
+  var _iteratorError5 = undefined;
+
+  try {
+    for (var _iterator5 = _config2.default.player.bullets[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+      var bullet = _step5.value;
+
+      if (bullet.lifetime > 0) {
+        bullet.draw();
+      }
+    }
+  } catch (err) {
+    _didIteratorError5 = true;
+    _iteratorError5 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion5 && _iterator5.return) {
+        _iterator5.return();
+      }
+    } finally {
+      if (_didIteratorError5) {
+        throw _iteratorError5;
+      }
+    }
+  }
+
+  _config2.default.player.draw();
+
   _config2.default.c.restore();
 }
 
@@ -1444,6 +1548,7 @@ function animate() {
   _config2.default.c.clearRect(0, 0, _config2.default.canvas.width, _config2.default.canvas.height);
 
   update();
+  draw();
 }
 
 init();
