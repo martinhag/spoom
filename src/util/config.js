@@ -2,6 +2,8 @@ export default {
   // Initial Setup
   canvas: null,
   c: null,
+  xView: 280,
+  yView: 170,
   
   // Active keys
   map: {},
@@ -19,7 +21,7 @@ export default {
   moveSpeed: 3,
   movementPenalty: 0.6,
   backwordsSpeed: 0.3,
-  angleAdjustments: 0.08,
+  angleAdjustments: 0.05,
   colors: [
     'black',
     'red',
