@@ -101,6 +101,10 @@ function init() {
 function update() {
   inputHandler.handleInput();
 
+  config.c.save();
+  // center "camera" over player
+  config.c.translate(config.xView + config.canvas.width/2, config.yView + config.canvas.height/2);
+
   for (let sector of config.sectors) {
     sector.update();
   }
@@ -110,6 +114,7 @@ function update() {
   }
 
   config.player.update();
+  config.c.restore();
 }
 
 // Animation Loop
