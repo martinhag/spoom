@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 5);
+/******/ 	return __webpack_require__(__webpack_require__.s = 9);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -76,223 +76,12 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-var _config = __webpack_require__(3);
-
-var _config2 = _interopRequireDefault(_config);
-
-var _canvasUtil = __webpack_require__(2);
-
-var util = _interopRequireWildcard(_canvasUtil);
-
-var _Sector = __webpack_require__(6);
-
-var _Sector2 = _interopRequireDefault(_Sector);
-
-var _Bullet = __webpack_require__(7);
-
-var _Bullet2 = _interopRequireDefault(_Bullet);
-
-var _Player = __webpack_require__(8);
-
-var _Player2 = _interopRequireDefault(_Player);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-exports.default = Enemy;
-
-
-function Enemy(x, y, hp, sector, id) {
-  this.x = x;
-  this.y = y;
-  this.color = 'yellow';
-  this.radius = 20;
-  this.id = id;
-
-  this.attackDelay = 140;
-  this.lastAttack = this.attackDelay;
-  this.bullets = [];
-
-  this.hp = hp;
-  this.sector = sector;
-
-  this.hit = function () {
-    this.radius -= 5;
-    this.hp--;
-  };
-
-  this.update = function () {
-
-    if (this.lastAttack >= this.attackDelay && this.hp > 0) {
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
-
-      try {
-        for (var _iterator = this.getSector().players[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var player = _step.value;
-
-          if (player.id === this.getSector().id) {
-            this.attack();
-          }
-        }
-      } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
-          }
-        } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
-          }
-        }
-      }
-    }
-
-    var _iteratorNormalCompletion2 = true;
-    var _didIteratorError2 = false;
-    var _iteratorError2 = undefined;
-
-    try {
-      for (var _iterator2 = this.bullets.entries()[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-        var _ref = _step2.value;
-
-        var _ref2 = _slicedToArray(_ref, 2);
-
-        var index = _ref2[0];
-        var bullet = _ref2[1];
-
-        bullet.update();
-
-        if (bullet.lifetime <= 0) {
-          this.bullets.splice(index, 1);
-        }
-      }
-    } catch (err) {
-      _didIteratorError2 = true;
-      _iteratorError2 = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion2 && _iterator2.return) {
-          _iterator2.return();
-        }
-      } finally {
-        if (_didIteratorError2) {
-          throw _iteratorError2;
-        }
-      }
-    }
-
-    this.lastAttack++;
-
-    if (this.hp > 0) {
-      this.draw();
-    }
-  };
-
-  this.attack = function () {
-    for (var i = 0; i < 6; i++) {
-      this.bullets.push(new _Bullet2.default(this.x, this.y, util.randomIntFromRange(-2, 2), util.randomIntFromRange(-2, 2), this.getSector(), 140, 1, 'red', this));
-    }
-    this.lastAttack = 0;
-  };
-
-  this.draw = function () {
-    _config2.default.c.beginPath();
-    _config2.default.c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-    _config2.default.c.fillStyle = this.color;
-    _config2.default.c.fill();
-    _config2.default.c.strokeStyle = 'black';
-    _config2.default.c.stroke();
-    _config2.default.c.closePath();
-  };
-
-  this.setSector = function (id) {
-    this.currentSector = id;
-  };
-
-  this.getSector = function () {
-    var _this = this;
-
-    return _config2.default.sectors.filter(function (sector) {
-      return sector.id === _this.sector;
-    })[0];
-  };
-}
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = Vertex;
-
-// Vertex
-
-function Vertex(x, y) {
-  this.x = x;
-  this.y = y;
-
-  this.equal = function (other) {
-    return this.x == other.x && this.y == other.y;
-  };
-}
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.randomIntFromRange = randomIntFromRange;
-exports.randomColor = randomColor;
-exports.getDistance = getDistance;
-// Utility Functions
-function randomIntFromRange(min, max) {
-  return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
-function randomColor(colors) {
-  return colors[Math.floor(Math.random() * colors.length)];
-}
-
-function getDistance(x1, y1, x2, y2) {
-  var xDistance = x2 - x1;
-  var yDistance = y2 - y1;
-
-  return Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
-}
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 exports.default = {
   // Initial Setup
   canvas: null,
   c: null,
+  xView: 280,
+  yView: 170,
 
   // Active keys
   map: {},
@@ -310,7 +99,7 @@ exports.default = {
   moveSpeed: 3,
   movementPenalty: 0.6,
   backwordsSpeed: 0.3,
-  angleAdjustments: 0.08,
+  angleAdjustments: 0.05,
   colors: ['black', 'red', 'blue', 'grey'],
 
   // Game setup
@@ -319,256 +108,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.clamp = clamp;
-exports.intersectBox = intersectBox;
-exports.overlap = overlap;
-exports.vcp = vcp;
-exports.pointSide = pointSide;
-exports.intersect = intersect;
-// Utility Functions
-
-//if input is higher than max or lower than min, return closest option
-function clamp(input, min, max) {
-  return Math.min(Math.max(input, min), max);
-}
-
-//does the two boxes intersect?
-function intersectBox(x0, y0, x1, y1, x2, y2, x3, y3) {
-  return overlap(x0, x1, x2, x3) && overlap(y0, y1, y2, y3);
-}
-
-//find out if number-ranges overlap. Used to determine intersects
-function overlap(a0, a1, b0, b1) {
-  return Math.min(a0, a1) <= Math.max(b0, b1) && Math.min(b0, b1) <= Math.max(a0, a1);
-}
-
-function vcp(x0, y0, x1, y1) {
-  return x0 * y1 - x1 * y0;
-}
-
-function pointSide(px, py, x0, y0, x1, y1) {
-  return vcp(x1 - x0, y1 - y0, px - x0, py - y0);
-}
-
-function intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
-  var pos = {};
-
-  pos.x = vcp(vcp(x1, y1, x2, y2), x1 - x2, vcp(x3, y3, x4, y4), x3 - x4) / vcp(x1 - x2, y1 - y2, x3 - x4, y3 - y4);
-
-  pos.y = vcp(vcp(x1, y1, x2, y2), y1 - y2, vcp(x3, y3, x4, y4), y3 - y4) / vcp(x1 - x2, y1 - y2, x3 - x4, y3 - y4);
-
-  return pos;
-}
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _inputHandler = __webpack_require__(9);
-
-var inputHandler = _interopRequireWildcard(_inputHandler);
-
-var _Player = __webpack_require__(8);
-
-var _Player2 = _interopRequireDefault(_Player);
-
-var _Vertex = __webpack_require__(1);
-
-var _Vertex2 = _interopRequireDefault(_Vertex);
-
-var _Sector = __webpack_require__(6);
-
-var _Sector2 = _interopRequireDefault(_Sector);
-
-var _Enemy = __webpack_require__(0);
-
-var _Enemy2 = _interopRequireDefault(_Enemy);
-
-var _config = __webpack_require__(3);
-
-var _config2 = _interopRequireDefault(_config);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-// // Initial Setup
-_config2.default.canvas = document.querySelector('canvas');
-_config2.default.c = _config2.default.canvas.getContext('2d');
-
-_config2.default.canvas.width = innerWidth;
-_config2.default.canvas.height = innerHeight;
-
-_config2.default.player = new _Player2.default(150, 100, _config2.default.entityId++);
-
-// Variables
-var mouse = {
-  x: innerWidth / 2,
-  y: innerHeight / 2
-};
-
-// Event Listeners
-addEventListener("mousemove", function (event) {
-  mouse.x = event.clientX;
-  mouse.y = event.clientY;
-});
-
-addEventListener("resize", function () {
-  _config2.default.canvas.width = innerWidth;
-  _config2.default.canvas.height = innerHeight;
-
-  // init();
-});
-
-onkeydown = onkeyup = function onkeyup(event) {
-  if (!_config2.default.commandKeys.indexOf(event.keyCode)) {
-    event.preventDefault();
-  }
-  _config2.default.map[event.keyCode] = event.type == 'keydown';
-};
-
-function init() {
-  var vertices1 = [],
-      vertices2 = [],
-      vertices3 = [],
-      vertices4 = [];
-  vertices1.push(new _Vertex2.default(50, 25));
-  vertices1.push(new _Vertex2.default(300, 25));
-  vertices1.push(new _Vertex2.default(300, 125));
-  vertices1.push(new _Vertex2.default(300, 175));
-  vertices1.push(new _Vertex2.default(300, 250));
-  vertices1.push(new _Vertex2.default(50, 250));
-
-  vertices2.push(new _Vertex2.default(300, 125));
-  vertices2.push(new _Vertex2.default(500, 125));
-  vertices2.push(new _Vertex2.default(500, 175));
-  vertices2.push(new _Vertex2.default(400, 175));
-  vertices2.push(new _Vertex2.default(300, 175));
-
-  vertices3.push(new _Vertex2.default(500, 175));
-  vertices3.push(new _Vertex2.default(500, 500));
-  vertices3.push(new _Vertex2.default(400, 500));
-  vertices3.push(new _Vertex2.default(400, 400));
-  vertices3.push(new _Vertex2.default(400, 175));
-
-  vertices4.push(new _Vertex2.default(400, 400));
-  vertices4.push(new _Vertex2.default(400, 500));
-  vertices4.push(new _Vertex2.default(400, 600));
-  vertices4.push(new _Vertex2.default(50, 600));
-  vertices4.push(new _Vertex2.default(50, 300));
-  vertices4.push(new _Vertex2.default(250, 300));
-  vertices4.push(new _Vertex2.default(250, 400));
-
-  var sector1 = new _Sector2.default(1, vertices1, 'black');
-  var sector2 = new _Sector2.default(2, vertices2, 'black');
-  var sector3 = new _Sector2.default(3, vertices3, 'black');
-  var sector4 = new _Sector2.default(4, vertices4, 'black');
-  sector4.setFloorColor('darkolivegreen');
-  sector4.setFriction(0.7);
-
-  sector1.addNeighbour(sector2);
-  sector2.addNeighbour(sector1);
-  sector2.addNeighbour(sector3);
-  sector3.addNeighbour(sector2);
-  sector3.addNeighbour(sector4);
-  sector4.addNeighbour(sector3);
-
-  _config2.default.sectors.push(sector1);
-  _config2.default.sectors.push(sector2);
-  _config2.default.sectors.push(sector3);
-  _config2.default.sectors.push(sector4);
-
-  _config2.default.player.setSector(1);
-  sector1.addPlayer(_config2.default.player);
-
-  //todo: Want to shift this info sections again, but when other sections "overdraw" stuff like bullets
-  var enemy = new _Enemy2.default(280, 170, 3, 1, _config2.default.entityId++);
-  _config2.default.enemies.push(enemy);
-  sector1.addEnemy(enemy);
-}
-
-// Update all objects
-function update() {
-  inputHandler.handleInput();
-
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
-
-  try {
-    for (var _iterator = _config2.default.sectors[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var sector = _step.value;
-
-      sector.update();
-    }
-  } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
-      }
-    } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
-      }
-    }
-  }
-
-  var _iteratorNormalCompletion2 = true;
-  var _didIteratorError2 = false;
-  var _iteratorError2 = undefined;
-
-  try {
-    for (var _iterator2 = _config2.default.enemies[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-      var enemy = _step2.value;
-
-      enemy.update();
-    }
-  } catch (err) {
-    _didIteratorError2 = true;
-    _iteratorError2 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion2 && _iterator2.return) {
-        _iterator2.return();
-      }
-    } finally {
-      if (_didIteratorError2) {
-        throw _iteratorError2;
-      }
-    }
-  }
-
-  _config2.default.player.update();
-}
-
-// Animation Loop
-function animate() {
-  requestAnimationFrame(animate);
-  _config2.default.c.clearRect(0, 0, _config2.default.canvas.width, _config2.default.canvas.height);
-
-  update();
-}
-
-init();
-animate();
-
-/***/ }),
-/* 6 */
+/* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -580,21 +120,283 @@ Object.defineProperty(exports, "__esModule", {
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
-var _config = __webpack_require__(3);
+var _config = __webpack_require__(0);
 
 var _config2 = _interopRequireDefault(_config);
 
-var _Vertex = __webpack_require__(1);
+var _vector_util = __webpack_require__(4);
+
+var vectorUtil = _interopRequireWildcard(_vector_util);
+
+var _Sector = __webpack_require__(2);
+
+var _Sector2 = _interopRequireDefault(_Sector);
+
+var _Bullet = __webpack_require__(6);
+
+var _Bullet2 = _interopRequireDefault(_Bullet);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = Player;
+
+// Player
+
+function Player(x, y, id) {
+  this.x = x;
+  this.y = y;
+  this.angle = 0;
+  this.width = 15;
+  this.height = 9;
+  this.maxHp = _config2.default.playerMaxHp;
+  this.hp = this.maxHp;
+  this.id = id;
+  this.currentSector = undefined;
+
+  this.vecAddition = [];
+  this.bullets = [];
+  this.bulletDelay = 15;
+  this.lastBullet = this.bulletDelay;
+
+  this.update = function () {
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = this.bullets.entries()[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var _ref = _step.value;
+
+        var _ref2 = _slicedToArray(_ref, 2);
+
+        var index = _ref2[0];
+        var bullet = _ref2[1];
+
+        bullet.update();
+        if (bullet.lifetime <= 0) {
+          this.bullets.splice(index, 1);
+          bullet.delete();
+        }
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
+      }
+    }
+
+    this.lastBullet++;
+
+    this.draw();
+  };
+
+  this.fire = function () {
+    if (this.lastBullet >= this.bulletDelay) {
+      this.bullets.push(new _Bullet2.default(this.x, this.y, Math.cos(this.angle) + this.x - this.x, Math.sin(this.angle) + this.y - this.y, this.getSector(), 60, 5, 'rgb(255,215,0)', this));
+      this.lastBullet = 0;
+    }
+  };
+
+  this.move = function () {
+    this.x += this.vecAddition[0] * this.getSector().friction;
+    this.y += this.vecAddition[1] * this.getSector().friction;
+
+    _config2.default.xView = -this.x;
+    _config2.default.yView = -this.y;
+  };
+
+  this.updatePos = function (vecAddition) {
+    var vertices = this.getSector().vertices;
+    var neighbours = this.getSector().neighbours;
+
+    for (var i = 0; i < vertices.length; i++) {
+      var a = vertices[i],
+          b = vertices[i + 1];
+
+      //Loop around for last corner
+      if (i == vertices.length - 1) {
+        b = vertices[0];
+      }
+
+      if (vectorUtil.intersectBox(this.x, this.y, this.x + vecAddition[0], this.y + vecAddition[1], a.x, a.y, b.x, b.y) && vectorUtil.pointSide(this.x + vecAddition[0], this.y + vecAddition[1], a.x, a.y, b.x, b.y) < 0) {
+
+        // Check if its a neighbour sector on the other side of wall
+        var _iteratorNormalCompletion2 = true;
+        var _didIteratorError2 = false;
+        var _iteratorError2 = undefined;
+
+        try {
+          for (var _iterator2 = neighbours[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+            var n = _step2.value;
+
+            if (this.checkForPortal(n, vecAddition, a, b)) //did we hit a portal?
+              return true;
+          }
+
+          //Bumps into a wall! Slide along the wall.
+          // This formula is from Wikipedia article "vector projection".
+        } catch (err) {
+          _didIteratorError2 = true;
+          _iteratorError2 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion2 && _iterator2.return) {
+              _iterator2.return();
+            }
+          } finally {
+            if (_didIteratorError2) {
+              throw _iteratorError2;
+            }
+          }
+        }
+
+        var xd = b.x - a.x,
+            yd = b.y - a.y;
+        vecAddition[0] = xd * (vecAddition[0] * xd + yd * vecAddition[1]) / (xd * xd + yd * yd);
+        vecAddition[1] = yd * (vecAddition[0] * xd + yd * vecAddition[1]) / (xd * xd + yd * yd);
+
+        // //will you slide past this wall? - Removed for now
+        // if( (Math.min(a.x, b.x) > this.x+vecAddition[0] || this.x+vecAddition[0] > Math.max(a.x, b.x)) &&
+        //   (Math.min(a.y, b.y) > this.y+vecAddition[1] || this.y+vecAddition[1] > Math.max(a.y, b.y))  ){
+        //   //if so, stop player
+        //   vecAddition[0] = 0;
+        //   vecAddition[1] = 0;
+        // }
+      }
+    }
+    this.vecAddition = vecAddition;
+    this.move();
+  };
+
+  this.checkForPortal = function (n, vecAddition, a, b) {
+    if (n.containsVertices(a, b)) {
+      //is this wall a door? and if so, is it locked?
+      // door* door_ = n->getWallDoor(a,b);
+      // bool isDoorLocked = (door_ != NULL && door_->doorLocked());
+
+      this.getSector().removePlayer(this);
+      this.setSector(n.id);
+      this.getSector().addPlayer(this);
+      //after changing sector, will you hit a wall?
+      if ((Math.min(a.x, b.x) > this.x + vecAddition[0] || this.x + vecAddition[0] > Math.max(a.x, b.x)) && (Math.min(a.y, b.y) > this.y + vecAddition[1] || this.y + vecAddition[1] > Math.max(a.y, b.y))) {
+        //if so, stop player
+        vecAddition[0] = 0;
+        vecAddition[1] = 0;
+      }
+      this.vecAddition = vecAddition;
+      this.move();
+
+      return true;
+    }
+    return false;
+  };
+
+  this.setSector = function (id) {
+    this.currentSector = id;
+  };
+
+  this.getSector = function () {
+    var _this = this;
+
+    return _config2.default.sectors.filter(function (sector) {
+      return sector.id === _this.currentSector;
+    })[0];
+  };
+
+  this.hit = function () {
+    if (this.hp > 1) {
+      this.hp--;
+    } else {
+      console.log('GAME OVER');
+    }
+  };
+
+  this.draw = function () {
+    _config2.default.c.beginPath();
+    _config2.default.c.moveTo(this.x, this.y);
+    _config2.default.c.lineTo(Math.cos(this.angle) * 15 + this.x, Math.sin(this.angle) * 15 + this.y);
+    _config2.default.c.strokeStyle = 'dimgrey';
+    _config2.default.c.lineWidth = 4;
+    _config2.default.c.stroke();
+    _config2.default.c.closePath();
+    _config2.default.c.lineWidth = 1;
+
+    _config2.default.c.save();
+    _config2.default.c.beginPath();
+    _config2.default.c.translate(this.x + this.width / 2 - this.width / 2, this.y + this.height / 2 - this.height / 2);
+    _config2.default.c.rotate(this.angle);
+    _config2.default.c.fillStyle = 'black';
+    _config2.default.c.rect(-this.width / 2, -this.height / 2, this.width, this.height);
+    _config2.default.c.fill();
+    _config2.default.c.stroke();
+    _config2.default.c.closePath();
+    _config2.default.c.restore();
+
+    //HP bar over player
+    _config2.default.c.beginPath();
+    _config2.default.c.moveTo(this.x - this.width / 2, this.y - this.height * 2.2);
+    _config2.default.c.lineTo(this.x + this.width / 2, this.y - this.height * 2.2);
+    _config2.default.c.strokeStyle = 'red';
+    _config2.default.c.lineWidth = 3;
+    _config2.default.c.stroke();
+    _config2.default.c.closePath();
+    _config2.default.c.lineWidth = 1;
+
+    _config2.default.c.beginPath();
+    _config2.default.c.moveTo(this.x - this.width / 2, this.y - this.height * 2.2);
+    _config2.default.c.lineTo(this.x + this.width / this.maxHp * this.hp - this.width / 2, this.y - this.height * 2.2);
+    _config2.default.c.strokeStyle = 'green';
+    _config2.default.c.lineWidth = 3;
+    _config2.default.c.stroke();
+    _config2.default.c.closePath();
+    _config2.default.c.lineWidth = 1;
+  };
+}
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _config = __webpack_require__(0);
+
+var _config2 = _interopRequireDefault(_config);
+
+var _vector_util = __webpack_require__(4);
+
+var vectorUtil = _interopRequireWildcard(_vector_util);
+
+var _Vertex = __webpack_require__(5);
 
 var _Vertex2 = _interopRequireDefault(_Vertex);
 
-var _Enemy = __webpack_require__(0);
+var _Enemy = __webpack_require__(3);
 
 var _Enemy2 = _interopRequireDefault(_Enemy);
 
-var _Player = __webpack_require__(8);
+var _Player = __webpack_require__(1);
 
 var _Player2 = _interopRequireDefault(_Player);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -866,6 +668,10 @@ function Sector(id, vertices, color) {
     }
   };
 
+  this.removePlayer = function (player) {
+    this.players.splice(this.players.indexOf(player));
+  };
+
   this.setFloorColor = function (color) {
     this.floorColor = color;
   };
@@ -888,7 +694,7 @@ function Sector(id, vertices, color) {
 }
 
 /***/ }),
-/* 7 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -898,11 +704,252 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _config = __webpack_require__(3);
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _config = __webpack_require__(0);
 
 var _config2 = _interopRequireDefault(_config);
 
-var _canvasUtil = __webpack_require__(2);
+var _canvasUtil = __webpack_require__(7);
+
+var util = _interopRequireWildcard(_canvasUtil);
+
+var _Sector = __webpack_require__(2);
+
+var _Sector2 = _interopRequireDefault(_Sector);
+
+var _Bullet = __webpack_require__(6);
+
+var _Bullet2 = _interopRequireDefault(_Bullet);
+
+var _Player = __webpack_require__(1);
+
+var _Player2 = _interopRequireDefault(_Player);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = Enemy;
+
+
+function Enemy(x, y, hp, sector, id) {
+  this.x = x;
+  this.y = y;
+  this.color = 'yellow';
+  this.radius = 20;
+  this.id = id;
+
+  this.attackDelay = 140;
+  this.lastAttack = this.attackDelay;
+  this.numberOfBullets = 9;
+  this.bullets = [];
+
+  this.hp = hp;
+  this.sector = sector;
+
+  this.hit = function () {
+    this.radius -= 5;
+    this.hp--;
+  };
+
+  this.update = function () {
+
+    if (this.lastAttack >= this.attackDelay && this.hp > 0) {
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = this.getSector().players[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var player = _step.value;
+
+          if (player.id === this.getSector().id) {
+            this.attack();
+          }
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+    }
+
+    var _iteratorNormalCompletion2 = true;
+    var _didIteratorError2 = false;
+    var _iteratorError2 = undefined;
+
+    try {
+      for (var _iterator2 = this.bullets.entries()[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+        var _ref = _step2.value;
+
+        var _ref2 = _slicedToArray(_ref, 2);
+
+        var index = _ref2[0];
+        var bullet = _ref2[1];
+
+        bullet.update();
+
+        if (bullet.lifetime <= 0) {
+          this.bullets.splice(index, 1);
+        }
+      }
+    } catch (err) {
+      _didIteratorError2 = true;
+      _iteratorError2 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion2 && _iterator2.return) {
+          _iterator2.return();
+        }
+      } finally {
+        if (_didIteratorError2) {
+          throw _iteratorError2;
+        }
+      }
+    }
+
+    this.lastAttack++;
+
+    if (this.hp > 0) {
+      this.draw();
+    }
+  };
+
+  this.attack = function () {
+    var randomOffset = util.randomIntFromRange(-90, 90);
+
+    for (var i = 0; i < this.numberOfBullets; i++) {
+      var angle = 360 / this.numberOfBullets * (i + 1) * Math.PI / 180 + randomOffset;
+      var speed = util.randomIntFromRange(2, 4);
+
+      this.bullets.push(new _Bullet2.default(this.x, this.y, Math.cos(angle) * speed, Math.sin(angle) * speed, this.getSector(), 140, 1, 'red', this));
+    }
+    this.lastAttack = 0;
+  };
+
+  this.draw = function () {
+    _config2.default.c.beginPath();
+    _config2.default.c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+    _config2.default.c.fillStyle = this.color;
+    _config2.default.c.fill();
+    _config2.default.c.strokeStyle = 'black';
+    _config2.default.c.stroke();
+    _config2.default.c.closePath();
+  };
+
+  this.setSector = function (id) {
+    this.currentSector = id;
+  };
+
+  this.getSector = function () {
+    var _this = this;
+
+    return _config2.default.sectors.filter(function (sector) {
+      return sector.id === _this.sector;
+    })[0];
+  };
+}
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.clamp = clamp;
+exports.intersectBox = intersectBox;
+exports.overlap = overlap;
+exports.vcp = vcp;
+exports.pointSide = pointSide;
+exports.intersect = intersect;
+// Utility Functions
+
+//if input is higher than max or lower than min, return closest option
+function clamp(input, min, max) {
+  return Math.min(Math.max(input, min), max);
+}
+
+//does the two boxes intersect?
+function intersectBox(x0, y0, x1, y1, x2, y2, x3, y3) {
+  return overlap(x0, x1, x2, x3) && overlap(y0, y1, y2, y3);
+}
+
+//find out if number-ranges overlap. Used to determine intersects
+function overlap(a0, a1, b0, b1) {
+  return Math.min(a0, a1) <= Math.max(b0, b1) && Math.min(b0, b1) <= Math.max(a0, a1);
+}
+
+function vcp(x0, y0, x1, y1) {
+  return x0 * y1 - x1 * y0;
+}
+
+function pointSide(px, py, x0, y0, x1, y1) {
+  return vcp(x1 - x0, y1 - y0, px - x0, py - y0);
+}
+
+function intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+  var pos = {};
+
+  pos.x = vcp(vcp(x1, y1, x2, y2), x1 - x2, vcp(x3, y3, x4, y4), x3 - x4) / vcp(x1 - x2, y1 - y2, x3 - x4, y3 - y4);
+
+  pos.y = vcp(vcp(x1, y1, x2, y2), y1 - y2, vcp(x3, y3, x4, y4), y3 - y4) / vcp(x1 - x2, y1 - y2, x3 - x4, y3 - y4);
+
+  return pos;
+}
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = Vertex;
+
+// Vertex
+
+function Vertex(x, y) {
+  this.x = x;
+  this.y = y;
+
+  this.equal = function (other) {
+    return this.x == other.x && this.y == other.y;
+  };
+}
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _config = __webpack_require__(0);
+
+var _config2 = _interopRequireDefault(_config);
+
+var _canvasUtil = __webpack_require__(7);
 
 var util = _interopRequireWildcard(_canvasUtil);
 
@@ -910,15 +957,15 @@ var _vector_util = __webpack_require__(4);
 
 var vectorUtil = _interopRequireWildcard(_vector_util);
 
-var _Sector = __webpack_require__(6);
+var _Sector = __webpack_require__(2);
 
 var _Sector2 = _interopRequireDefault(_Sector);
 
-var _Enemy = __webpack_require__(0);
+var _Enemy = __webpack_require__(3);
 
 var _Enemy2 = _interopRequireDefault(_Enemy);
 
-var _Player = __webpack_require__(8);
+var _Player = __webpack_require__(1);
 
 var _Player2 = _interopRequireDefault(_Player);
 
@@ -1089,7 +1136,7 @@ function Bullet(x, y, dx, dy, sector, lifetime, fireSpeed, color, owner) {
 }
 
 /***/ }),
-/* 8 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1098,260 +1145,27 @@ function Bullet(x, y, dx, dy, sector, lifetime, fireSpeed, color, owner) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.randomIntFromRange = randomIntFromRange;
+exports.randomColor = randomColor;
+exports.getDistance = getDistance;
+// Utility Functions
+function randomIntFromRange(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
 
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+function randomColor(colors) {
+  return colors[Math.floor(Math.random() * colors.length)];
+}
 
-var _config = __webpack_require__(3);
+function getDistance(x1, y1, x2, y2) {
+  var xDistance = x2 - x1;
+  var yDistance = y2 - y1;
 
-var _config2 = _interopRequireDefault(_config);
-
-var _vector_util = __webpack_require__(4);
-
-var vectorUtil = _interopRequireWildcard(_vector_util);
-
-var _Sector = __webpack_require__(6);
-
-var _Sector2 = _interopRequireDefault(_Sector);
-
-var _Bullet = __webpack_require__(7);
-
-var _Bullet2 = _interopRequireDefault(_Bullet);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-exports.default = Player;
-
-// Player
-
-function Player(x, y, id) {
-  this.x = x;
-  this.y = y;
-  this.angle = 0;
-  this.width = 15;
-  this.height = 9;
-  this.maxHp = _config2.default.playerMaxHp;
-  this.hp = this.maxHp;
-  this.id = id;
-  this.currentSector = undefined;
-
-  this.vecAddition = [];
-  this.bullets = [];
-  this.bulletDelay = 15;
-  this.lastBullet = this.bulletDelay;
-
-  this.update = function () {
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
-
-    try {
-      for (var _iterator = this.bullets.entries()[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var _ref = _step.value;
-
-        var _ref2 = _slicedToArray(_ref, 2);
-
-        var index = _ref2[0];
-        var bullet = _ref2[1];
-
-        bullet.update();
-        if (bullet.lifetime <= 0) {
-          this.bullets.splice(index, 1);
-          bullet.delete();
-        }
-      }
-    } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion && _iterator.return) {
-          _iterator.return();
-        }
-      } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
-        }
-      }
-    }
-
-    this.lastBullet++;
-
-    this.draw();
-  };
-
-  this.fire = function () {
-    if (this.lastBullet >= this.bulletDelay) {
-      this.bullets.push(new _Bullet2.default(this.x, this.y, Math.cos(this.angle) + this.x - this.x, Math.sin(this.angle) + this.y - this.y, this.getSector(), 60, 5, 'rgb(255,215,0)', this));
-      this.lastBullet = 0;
-    }
-  };
-
-  this.move = function () {
-    this.x += this.vecAddition[0] * this.getSector().friction;
-    this.y += this.vecAddition[1] * this.getSector().friction;
-  };
-
-  this.updatePos = function (vecAddition) {
-    var vertices = this.getSector().vertices;
-    var neighbours = this.getSector().neighbours;
-
-    for (var i = 0; i < vertices.length; i++) {
-      var a = vertices[i],
-          b = vertices[i + 1];
-
-      //Loop around for last corner
-      if (i == vertices.length - 1) {
-        b = vertices[0];
-      }
-
-      if (vectorUtil.intersectBox(this.x, this.y, this.x + vecAddition[0], this.y + vecAddition[1], a.x, a.y, b.x, b.y) && vectorUtil.pointSide(this.x + vecAddition[0], this.y + vecAddition[1], a.x, a.y, b.x, b.y) < 0) {
-
-        // Check if its a neighbour sector on the other side of wall
-        var _iteratorNormalCompletion2 = true;
-        var _didIteratorError2 = false;
-        var _iteratorError2 = undefined;
-
-        try {
-          for (var _iterator2 = neighbours[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-            var n = _step2.value;
-
-            if (this.checkForPortal(n, vecAddition, a, b)) //did we hit a portal?
-              return true;
-          }
-
-          //Bumps into a wall! Slide along the wall.
-          // This formula is from Wikipedia article "vector projection".
-        } catch (err) {
-          _didIteratorError2 = true;
-          _iteratorError2 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion2 && _iterator2.return) {
-              _iterator2.return();
-            }
-          } finally {
-            if (_didIteratorError2) {
-              throw _iteratorError2;
-            }
-          }
-        }
-
-        var xd = b.x - a.x,
-            yd = b.y - a.y;
-        vecAddition[0] = xd * (vecAddition[0] * xd + yd * vecAddition[1]) / (xd * xd + yd * yd);
-        vecAddition[1] = yd * (vecAddition[0] * xd + yd * vecAddition[1]) / (xd * xd + yd * yd);
-
-        // //will you slide past this wall?
-        if ((Math.min(a.x, b.x) > this.x + vecAddition[0] || this.x + vecAddition[0] > Math.max(a.x, b.x)) && (Math.min(a.y, b.y) > this.y + vecAddition[1] || this.y + vecAddition[1] > Math.max(a.y, b.y))) {
-          //if so, stop player
-          vecAddition[0] = 0;
-          vecAddition[1] = 0;
-        }
-      }
-    }
-    this.vecAddition = vecAddition;
-    this.move();
-  };
-
-  this.checkForPortal = function (n, vecAddition, a, b) {
-    if (n.containsVertices(a, b)) {
-      // let hole_low  = n < 0 ?  9e9 : max(getSector()->floor(), n->floor());//height of the heigest floor - gives opening
-      // let hole_high = n < 0 ? -9e9 : min(getSector()->ceiling(),  n->ceiling());//height of the lowest floor- gives opening
-      // let floor_diff = n->floor() - getSector()->floor();// height differens of sector floors
-
-      //is this wall a door? and if so, is it locked?
-      // door* door_ = n->getWallDoor(a,b);
-      // bool isDoorLocked = (door_ != NULL && door_->doorLocked());
-
-      // can player walk/jump through opening?
-      // if(((hole_high - hole_low) >= ((isCrouching ? CROUCHHEIGHT : BODYHEIGHT)+HEADSIZE)) && (z() <= hole_high) && !isDoorLocked &&
-      //   ((!isFalling && floor_diff <= KNEEHEIGHT) || (isFalling && z()-KNEEHEIGHT >= hole_low)))
-      // {
-      this.setSector(n.id);
-      //after changing sector, will you hit a wall?
-      if ((Math.min(a.x, b.x) > this.x + vecAddition[0] || this.x + vecAddition[0] > Math.max(a.x, b.x)) && (Math.min(a.y, b.y) > this.y + vecAddition[1] || this.y + vecAddition[1] > Math.max(a.y, b.y))) {
-        //if so, stop player
-        vecAddition[0] = 0;
-        vecAddition[1] = 0;
-      }
-      this.vecAddition = vecAddition;
-      this.move();
-
-      //sets default_z to floor + BodyHeight. Player will move towards this next frame
-      // default_z = getSector()->floor() + BODYHEIGHT;
-      // setVelocity(velo);		//if we fall after sector-change we fall forward.
-      return true;
-      // }
-    }
-    return false;
-  };
-
-  this.setSector = function (id) {
-    this.currentSector = id;
-  };
-
-  this.getSector = function () {
-    var _this = this;
-
-    return _config2.default.sectors.filter(function (sector) {
-      return sector.id === _this.currentSector;
-    })[0];
-  };
-
-  this.hit = function () {
-    if (this.hp > 1) {
-      this.hp--;
-    } else {
-      console.log('GAME OVER');
-    }
-  };
-
-  this.draw = function () {
-    _config2.default.c.beginPath();
-    _config2.default.c.moveTo(this.x, this.y);
-    _config2.default.c.lineTo(Math.cos(this.angle) * 15 + this.x, Math.sin(this.angle) * 15 + this.y);
-    _config2.default.c.strokeStyle = 'dimgrey';
-    _config2.default.c.lineWidth = 4;
-    _config2.default.c.stroke();
-    _config2.default.c.closePath();
-    _config2.default.c.lineWidth = 1;
-
-    _config2.default.c.save();
-    _config2.default.c.beginPath();
-    _config2.default.c.translate(this.x + this.width / 2 - this.width / 2, this.y + this.height / 2 - this.height / 2);
-    _config2.default.c.rotate(this.angle);
-    _config2.default.c.fillStyle = 'black';
-    _config2.default.c.rect(-this.width / 2, -this.height / 2, this.width, this.height);
-    _config2.default.c.fill();
-    _config2.default.c.stroke();
-    _config2.default.c.closePath();
-    _config2.default.c.restore();
-
-    //HP bar over player
-    _config2.default.c.beginPath();
-    _config2.default.c.moveTo(this.x - this.width / 2, this.y - this.height * 2.2);
-    _config2.default.c.lineTo(this.x + this.width / 2, this.y - this.height * 2.2);
-    _config2.default.c.strokeStyle = 'red';
-    _config2.default.c.lineWidth = 3;
-    _config2.default.c.stroke();
-    _config2.default.c.closePath();
-    _config2.default.c.lineWidth = 1;
-
-    _config2.default.c.beginPath();
-    _config2.default.c.moveTo(this.x - this.width / 2, this.y - this.height * 2.2);
-    _config2.default.c.lineTo(this.x + this.width / this.maxHp * this.hp - this.width / 2, this.y - this.height * 2.2);
-    _config2.default.c.strokeStyle = 'green';
-    _config2.default.c.lineWidth = 3;
-    _config2.default.c.stroke();
-    _config2.default.c.closePath();
-    _config2.default.c.lineWidth = 1;
-  };
+  return Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
 }
 
 /***/ }),
-/* 9 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1362,11 +1176,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.handleInput = handleInput;
 
-var _config = __webpack_require__(3);
+var _config = __webpack_require__(0);
 
 var _config2 = _interopRequireDefault(_config);
 
-var _Player = __webpack_require__(8);
+var _Player = __webpack_require__(1);
 
 var _Player2 = _interopRequireDefault(_Player);
 
@@ -1431,6 +1245,209 @@ function handleInput() {
 
   _config2.default.player.updatePos(vecAddition);
 }
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _inputHandler = __webpack_require__(8);
+
+var inputHandler = _interopRequireWildcard(_inputHandler);
+
+var _Player = __webpack_require__(1);
+
+var _Player2 = _interopRequireDefault(_Player);
+
+var _Vertex = __webpack_require__(5);
+
+var _Vertex2 = _interopRequireDefault(_Vertex);
+
+var _Sector = __webpack_require__(2);
+
+var _Sector2 = _interopRequireDefault(_Sector);
+
+var _Enemy = __webpack_require__(3);
+
+var _Enemy2 = _interopRequireDefault(_Enemy);
+
+var _config = __webpack_require__(0);
+
+var _config2 = _interopRequireDefault(_config);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+// // Initial Setup
+_config2.default.canvas = document.querySelector('canvas');
+_config2.default.c = _config2.default.canvas.getContext('2d');
+
+_config2.default.canvas.width = innerWidth;
+_config2.default.canvas.height = innerHeight;
+
+_config2.default.player = new _Player2.default(150, 100, _config2.default.entityId++);
+
+// Variables
+var mouse = {
+  x: innerWidth / 2,
+  y: innerHeight / 2
+};
+
+// Event Listeners
+addEventListener("mousemove", function (event) {
+  mouse.x = event.clientX;
+  mouse.y = event.clientY;
+});
+
+addEventListener("resize", function () {
+  _config2.default.canvas.width = innerWidth;
+  _config2.default.canvas.height = innerHeight;
+
+  // init();
+});
+
+onkeydown = onkeyup = function onkeyup(event) {
+  if (!_config2.default.commandKeys.indexOf(event.keyCode)) {
+    event.preventDefault();
+  }
+  _config2.default.map[event.keyCode] = event.type == 'keydown';
+};
+
+function init() {
+  var vertices1 = [],
+      vertices2 = [],
+      vertices3 = [],
+      vertices4 = [];
+  vertices1.push(new _Vertex2.default(50, 25));
+  vertices1.push(new _Vertex2.default(300, 25));
+  vertices1.push(new _Vertex2.default(300, 125));
+  vertices1.push(new _Vertex2.default(300, 175));
+  vertices1.push(new _Vertex2.default(300, 250));
+  vertices1.push(new _Vertex2.default(50, 250));
+
+  vertices2.push(new _Vertex2.default(300, 125));
+  vertices2.push(new _Vertex2.default(500, 125));
+  vertices2.push(new _Vertex2.default(500, 175));
+  vertices2.push(new _Vertex2.default(400, 175));
+  vertices2.push(new _Vertex2.default(300, 175));
+
+  vertices3.push(new _Vertex2.default(500, 175));
+  vertices3.push(new _Vertex2.default(500, 500));
+  vertices3.push(new _Vertex2.default(400, 500));
+  vertices3.push(new _Vertex2.default(400, 400));
+  vertices3.push(new _Vertex2.default(400, 175));
+
+  vertices4.push(new _Vertex2.default(400, 400));
+  vertices4.push(new _Vertex2.default(400, 500));
+  vertices4.push(new _Vertex2.default(400, 600));
+  vertices4.push(new _Vertex2.default(50, 600));
+  vertices4.push(new _Vertex2.default(50, 300));
+  vertices4.push(new _Vertex2.default(250, 300));
+  vertices4.push(new _Vertex2.default(250, 400));
+
+  var sector1 = new _Sector2.default(1, vertices1, 'black');
+  var sector2 = new _Sector2.default(2, vertices2, 'black');
+  var sector3 = new _Sector2.default(3, vertices3, 'black');
+  var sector4 = new _Sector2.default(4, vertices4, 'black');
+  sector4.setFloorColor('darkolivegreen');
+  sector4.setFriction(0.7);
+
+  sector1.addNeighbour(sector2);
+  sector2.addNeighbour(sector1);
+  sector2.addNeighbour(sector3);
+  sector3.addNeighbour(sector2);
+  sector3.addNeighbour(sector4);
+  sector4.addNeighbour(sector3);
+
+  _config2.default.sectors.push(sector1);
+  _config2.default.sectors.push(sector2);
+  _config2.default.sectors.push(sector3);
+  _config2.default.sectors.push(sector4);
+
+  _config2.default.player.setSector(1);
+  sector1.addPlayer(_config2.default.player);
+
+  //todo: Want to shift this info sections again, but when other sections "overdraw" stuff like bullets
+  var enemy = new _Enemy2.default(280, 170, 3, 1, _config2.default.entityId++);
+  _config2.default.enemies.push(enemy);
+  sector1.addEnemy(enemy);
+}
+
+// Update all objects
+function update() {
+  inputHandler.handleInput();
+
+  _config2.default.c.save();
+  // center "camera" over player
+  _config2.default.c.translate(_config2.default.xView + _config2.default.canvas.width / 2, _config2.default.yView + _config2.default.canvas.height / 2);
+
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = _config2.default.sectors[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var sector = _step.value;
+
+      sector.update();
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  var _iteratorNormalCompletion2 = true;
+  var _didIteratorError2 = false;
+  var _iteratorError2 = undefined;
+
+  try {
+    for (var _iterator2 = _config2.default.enemies[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+      var enemy = _step2.value;
+
+      enemy.update();
+    }
+  } catch (err) {
+    _didIteratorError2 = true;
+    _iteratorError2 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion2 && _iterator2.return) {
+        _iterator2.return();
+      }
+    } finally {
+      if (_didIteratorError2) {
+        throw _iteratorError2;
+      }
+    }
+  }
+
+  _config2.default.player.update();
+  _config2.default.c.restore();
+}
+
+// Animation Loop
+function animate() {
+  requestAnimationFrame(animate);
+  _config2.default.c.clearRect(0, 0, _config2.default.canvas.width, _config2.default.canvas.height);
+
+  update();
+}
+
+init();
+animate();
 
 /***/ })
 /******/ ]);
