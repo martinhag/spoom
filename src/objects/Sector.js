@@ -1,4 +1,5 @@
 import config from '../util/config';
+import * as vectorUtil from '../util/vector_util';
 import Vertex from './Vertex';
 import Enemy from './Enemy';
 import Player from './Player';
@@ -103,7 +104,7 @@ function Sector(id, vertices, color) {
     config.c.strokeWidth = 2;
     config.c.stroke();
     config.c.closePath();
-
+    
     this.drawFloor();
   };
 
@@ -133,7 +134,11 @@ function Sector(id, vertices, color) {
         this.enemies.splice(index, 1);
       }
     }
-  }
+  };
+
+  this.removePlayer = function (player) {
+    this.players.splice(this.players.indexOf(player));
+  };
 
   this.setFloorColor = function (color) {
     this.floorColor = color;
