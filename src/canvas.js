@@ -89,14 +89,13 @@ function init() {
   config.sectors.push(sector4);
 
   config.player.setSector(1);
-  sector1.addPlayer(config.player);
-
-  //todo: Want to shift this info sections again, but when other sections "overdraw" stuff like bullets
-  let enemyVertex = sector4.randomVertex(config.enemyRadius);
-  console.log(enemyVertex.x, enemyVertex.y);
-  let enemy = new Enemy(enemyVertex.x, enemyVertex.y, 3, 4, config.entityId++);
-  config.enemies.push(enemy);
-  sector4.addEnemy(enemy);
+  sector1.enterSector(config.player);
+  
+  // let enemyVertex = sector4.randomVertex(config.enemyRadius);
+  // console.log(enemyVertex.x, enemyVertex.y);
+  // let enemy = new Enemy(enemyVertex.x, enemyVertex.y, 3, 4, config.entityId++);
+  // config.enemies.push(enemy);
+  // sector4.addEnemy(enemy);
 }
 
 // Update all objects

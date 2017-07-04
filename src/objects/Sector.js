@@ -161,6 +161,23 @@ function Sector(id, vertices, color) {
     this.enemies = enemies;
   };
 
+  this.spawnEnemy = function () {
+    let enemyVertex = this.randomVertex(config.enemyRadius);
+    let enemy = new Enemy(enemyVertex.x, enemyVertex.y, 3, this.id, config.entityId++);
+    config.enemies.push(enemy);
+    this.addEnemy(enemy);
+  };
+
+  this.enterSector = function (player) {
+    this.addPlayer(player);
+
+    let random = util.randomIntFromRange(1,10);
+
+    if (random >= 10) {
+      this.spawnEnemy();
+    }
+  };
+
   /*
   |-------------------------------------------------------------------------------------------------------------------
   | Random vertex used to spawn new entity inside sector

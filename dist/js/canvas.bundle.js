@@ -285,7 +285,8 @@ function Player(x, y, id) {
 
       this.getSector().removePlayer(this);
       this.setSector(n.id);
-      this.getSector().addPlayer(this);
+      this.getSector().enterSector(this);
+
       //after changing sector, will you hit a wall?
       if ((Math.min(a.x, b.x) > this.x + vecAddition[0] || this.x + vecAddition[0] > Math.max(a.x, b.x)) && (Math.min(a.y, b.y) > this.y + vecAddition[1] || this.y + vecAddition[1] > Math.max(a.y, b.y))) {
         //if so, stop player
@@ -693,6 +694,23 @@ function Sector(id, vertices, color) {
 
   this.setEnemy = function (enemies) {
     this.enemies = enemies;
+  };
+
+  this.spawnEnemy = function () {
+    var enemyVertex = this.randomVertex(_config2.default.enemyRadius);
+    var enemy = new _Enemy2.default(enemyVertex.x, enemyVertex.y, 3, this.id, _config2.default.entityId++);
+    _config2.default.enemies.push(enemy);
+    this.addEnemy(enemy);
+  };
+
+  this.enterSector = function (player) {
+    this.addPlayer(player);
+
+    var random = util.randomIntFromRange(1, 10);
+
+    if (random >= 10) {
+      this.spawnEnemy();
+    }
   };
 
   /*
@@ -1456,14 +1474,13 @@ function init() {
   _config2.default.sectors.push(sector4);
 
   _config2.default.player.setSector(1);
-  sector1.addPlayer(_config2.default.player);
+  sector1.enterSector(_config2.default.player);
 
-  //todo: Want to shift this info sections again, but when other sections "overdraw" stuff like bullets
-  var enemyVertex = sector4.randomVertex(_config2.default.enemyRadius);
-  console.log(enemyVertex.x, enemyVertex.y);
-  var enemy = new _Enemy2.default(enemyVertex.x, enemyVertex.y, 3, 4, _config2.default.entityId++);
-  _config2.default.enemies.push(enemy);
-  sector4.addEnemy(enemy);
+  // let enemyVertex = sector4.randomVertex(config.enemyRadius);
+  // console.log(enemyVertex.x, enemyVertex.y);
+  // let enemy = new Enemy(enemyVertex.x, enemyVertex.y, 3, 4, config.entityId++);
+  // config.enemies.push(enemy);
+  // sector4.addEnemy(enemy);
 }
 
 // Update all objects

@@ -110,7 +110,8 @@ function Player(x, y, id) {
 
       this.getSector().removePlayer(this);
       this.setSector(n.id);
-      this.getSector().addPlayer(this);
+      this.getSector().enterSector(this);
+      
       //after changing sector, will you hit a wall?
       if( (Math.min(a.x, b.x) > this.x+vecAddition[0] || this.x+vecAddition[0] > Math.max(a.x, b.x)) &&
         (Math.min(a.y, b.y) > this.y+vecAddition[1] || this.y+vecAddition[1] > Math.max(a.y, b.y))  ){
