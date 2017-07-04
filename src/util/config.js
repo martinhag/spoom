@@ -22,6 +22,7 @@ export default {
   movementPenalty: 0.6,
   backwordsSpeed: 0.3,
   angleAdjustments: 0.05,
+  enemyRadius: 20,
   colors: [
     'black',
     'red',

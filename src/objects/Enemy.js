@@ -10,7 +10,7 @@ function Enemy(x, y, hp, sector, id) {
   this.x = x;
   this.y = y;
   this.color = 'yellow';
-  this.radius = 20;
+  this.radius = config.enemyRadius;
   this.id = id;
 
   this.attackDelay = 140;
@@ -30,9 +30,7 @@ function Enemy(x, y, hp, sector, id) {
 
     if (this.lastAttack >= this.attackDelay && this.hp > 0) {
       for (let player of this.getSector().players) {
-        if (player.id === this.getSector().id) {
-          this.attack();
-        }
+        this.attack();
       }
     }
 
