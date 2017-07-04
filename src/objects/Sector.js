@@ -1,5 +1,6 @@
 import config from '../util/config';
 import * as vectorUtil from '../util/vector_util';
+import * as util from '../util/canvas-util';
 import Vertex from './Vertex';
 import Enemy from './Enemy';
 import Player from './Player';
@@ -122,9 +123,7 @@ function Sector(id, vertices, color) {
 
     config.c.lineTo(this.vertices[0].x, this.vertices[0].y);
     config.c.fillStyle = this.floorColor;
-    // config.c.strokeStyle = this.floorColor;
     config.c.fill();
-    // config.c.stroke();
     config.c.closePath();
     config.c.restore();
   };
@@ -150,15 +149,91 @@ function Sector(id, vertices, color) {
     this.friction = friction;
   };
 
-  this.addPlayer= function (player) {
+  this.addPlayer = function (player) {
     this.players.push(player);
   };
 
-  this.addEnemy= function (enemy) {
+  this.addEnemy = function (enemy) {
     this.enemies.push(enemy);
   };
 
-  this.setEnemy= function (enemies) {
+  this.setEnemy = function (enemies) {
     this.enemies = enemies;
+  };
+
+  /*
+  |-------------------------------------------------------------------------------------------------------------------
+  | Random vertex used to spawn new entity inside sector
+  |-------------------------------------------------------------------------------------------------------------------
+  | Default param dtw (Distance from wall) is used to avoid entity to overlap walls and openings
+  */
+
+  this.randomVertex = function (dfw = 0) {
+    let rangeXY = this.findMaxAndMin();
+    let newPoint = true;
+    let point = null;
+    
+    while (newPoint) {
+      point = new Vertex(
+        util.randomIntFromRange(rangeXY.minX + dfw, rangeXY.maxX - dfw),
+        util.randomIntFromRange(rangeXY.minY + dfw, rangeXY.maxY - dfw)
+      );
+
+      newPoint = !this.insideSector(point);
+    }
+
+    return point;
+  };
+
+  this.findMaxAndMin = function () {
+    let minX = this.vertices[0].x;
+    let maxX = this.vertices[0].x;
+    let minY = this.vertices[0].y;
+    let maxY = this.vertices[0].y;
+
+    for (let vertex of this.vertices) {
+      if (vertex.x < minX) {
+        minX = vertex.x;
+      }
+
+      if (vertex.x > maxX) {
+        maxX = vertex.x;
+      }
+
+      if (vertex.y < minY) {
+        minY = vertex.y;
+      }
+
+      if (vertex.y > maxY) {
+        maxY = vertex.y;
+      }
+    }
+
+    return {
+      'minX': minX,
+      'maxX': maxX,
+      'minY': minY,
+      'maxY': maxY
+    };
+  };
+
+  this.insideSector = function (vertex) {
+    let vertices = this.vertices;
+    let   i, j = vertices.length-1;
+    let inside = false;
+
+    for (i = 0; i < vertices.length; i++) {
+      if ((vertices[i].y < vertex.y && vertices[j].y >= vertex.y
+        ||   vertices[j].y < vertex.y && vertices[i].y >= vertex.y)
+        &&  (vertices[i].x <= vertex.x || vertices[j].x <= vertex.x)) {
+
+        inside = inside ^ ((vertices[i].x + (vertex.y - vertices[i].y)
+                    / (vertices[j].y - vertices[i].y)
+                    * (vertices[j].x - vertices[i].x) < vertex.x));
+      }
+      j=i;
+    }
+
+    return inside;
   };
 }

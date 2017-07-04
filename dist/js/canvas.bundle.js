@@ -100,6 +100,7 @@ exports.default = {
   movementPenalty: 0.6,
   backwordsSpeed: 0.3,
   angleAdjustments: 0.05,
+  enemyRadius: 20,
   colors: ['black', 'red', 'blue', 'grey'],
 
   // Game setup
@@ -124,7 +125,7 @@ var _config = __webpack_require__(0);
 
 var _config2 = _interopRequireDefault(_config);
 
-var _vector_util = __webpack_require__(4);
+var _vector_util = __webpack_require__(5);
 
 var vectorUtil = _interopRequireWildcard(_vector_util);
 
@@ -132,7 +133,7 @@ var _Sector = __webpack_require__(2);
 
 var _Sector2 = _interopRequireDefault(_Sector);
 
-var _Bullet = __webpack_require__(6);
+var _Bullet = __webpack_require__(7);
 
 var _Bullet2 = _interopRequireDefault(_Bullet);
 
@@ -378,11 +379,15 @@ var _config = __webpack_require__(0);
 
 var _config2 = _interopRequireDefault(_config);
 
-var _vector_util = __webpack_require__(4);
+var _vector_util = __webpack_require__(5);
 
 var vectorUtil = _interopRequireWildcard(_vector_util);
 
-var _Vertex = __webpack_require__(5);
+var _canvasUtil = __webpack_require__(4);
+
+var util = _interopRequireWildcard(_canvasUtil);
+
+var _Vertex = __webpack_require__(6);
 
 var _Vertex2 = _interopRequireDefault(_Vertex);
 
@@ -626,9 +631,7 @@ function Sector(id, vertices, color) {
 
     _config2.default.c.lineTo(this.vertices[0].x, this.vertices[0].y);
     _config2.default.c.fillStyle = this.floorColor;
-    // config.c.strokeStyle = this.floorColor;
     _config2.default.c.fill();
-    // config.c.stroke();
     _config2.default.c.closePath();
     _config2.default.c.restore();
   };
@@ -691,6 +694,99 @@ function Sector(id, vertices, color) {
   this.setEnemy = function (enemies) {
     this.enemies = enemies;
   };
+
+  /*
+  |-------------------------------------------------------------------------------------------------------------------
+  | Random vertex used to spawn new entity inside sector
+  |-------------------------------------------------------------------------------------------------------------------
+  | Default param dtw (Distance from wall) is used to avoid entity to overlap walls and openings
+  */
+
+  this.randomVertex = function () {
+    var dfw = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+
+    var rangeXY = this.findMaxAndMin();
+    var newPoint = true;
+    var point = null;
+
+    while (newPoint) {
+      point = new _Vertex2.default(util.randomIntFromRange(rangeXY.minX + dfw, rangeXY.maxX - dfw), util.randomIntFromRange(rangeXY.minY + dfw, rangeXY.maxY - dfw));
+
+      newPoint = !this.insideSector(point);
+    }
+
+    return point;
+  };
+
+  this.findMaxAndMin = function () {
+    var minX = this.vertices[0].x;
+    var maxX = this.vertices[0].x;
+    var minY = this.vertices[0].y;
+    var maxY = this.vertices[0].y;
+
+    var _iteratorNormalCompletion7 = true;
+    var _didIteratorError7 = false;
+    var _iteratorError7 = undefined;
+
+    try {
+      for (var _iterator7 = this.vertices[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+        var vertex = _step7.value;
+
+        if (vertex.x < minX) {
+          minX = vertex.x;
+        }
+
+        if (vertex.x > maxX) {
+          maxX = vertex.x;
+        }
+
+        if (vertex.y < minY) {
+          minY = vertex.y;
+        }
+
+        if (vertex.y > maxY) {
+          maxY = vertex.y;
+        }
+      }
+    } catch (err) {
+      _didIteratorError7 = true;
+      _iteratorError7 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion7 && _iterator7.return) {
+          _iterator7.return();
+        }
+      } finally {
+        if (_didIteratorError7) {
+          throw _iteratorError7;
+        }
+      }
+    }
+
+    return {
+      'minX': minX,
+      'maxX': maxX,
+      'minY': minY,
+      'maxY': maxY
+    };
+  };
+
+  this.insideSector = function (vertex) {
+    var vertices = this.vertices;
+    var i = void 0,
+        j = vertices.length - 1;
+    var inside = false;
+
+    for (i = 0; i < vertices.length; i++) {
+      if ((vertices[i].y < vertex.y && vertices[j].y >= vertex.y || vertices[j].y < vertex.y && vertices[i].y >= vertex.y) && (vertices[i].x <= vertex.x || vertices[j].x <= vertex.x)) {
+
+        inside = inside ^ vertices[i].x + (vertex.y - vertices[i].y) / (vertices[j].y - vertices[i].y) * (vertices[j].x - vertices[i].x) < vertex.x;
+      }
+      j = i;
+    }
+
+    return inside;
+  };
 }
 
 /***/ }),
@@ -710,7 +806,7 @@ var _config = __webpack_require__(0);
 
 var _config2 = _interopRequireDefault(_config);
 
-var _canvasUtil = __webpack_require__(7);
+var _canvasUtil = __webpack_require__(4);
 
 var util = _interopRequireWildcard(_canvasUtil);
 
@@ -718,7 +814,7 @@ var _Sector = __webpack_require__(2);
 
 var _Sector2 = _interopRequireDefault(_Sector);
 
-var _Bullet = __webpack_require__(6);
+var _Bullet = __webpack_require__(7);
 
 var _Bullet2 = _interopRequireDefault(_Bullet);
 
@@ -737,7 +833,7 @@ function Enemy(x, y, hp, sector, id) {
   this.x = x;
   this.y = y;
   this.color = 'yellow';
-  this.radius = 20;
+  this.radius = _config2.default.enemyRadius;
   this.id = id;
 
   this.attackDelay = 140;
@@ -764,9 +860,7 @@ function Enemy(x, y, hp, sector, id) {
         for (var _iterator = this.getSector().players[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
           var player = _step.value;
 
-          if (player.id === this.getSector().id) {
-            this.attack();
-          }
+          this.attack();
         }
       } catch (err) {
         _didIteratorError = true;
@@ -866,6 +960,35 @@ function Enemy(x, y, hp, sector, id) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.randomIntFromRange = randomIntFromRange;
+exports.randomColor = randomColor;
+exports.getDistance = getDistance;
+// Utility Functions
+function randomIntFromRange(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+function randomColor(colors) {
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+function getDistance(x1, y1, x2, y2) {
+  var xDistance = x2 - x1;
+  var yDistance = y2 - y1;
+
+  return Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
+}
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 exports.clamp = clamp;
 exports.intersectBox = intersectBox;
 exports.overlap = overlap;
@@ -908,7 +1031,7 @@ function intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
 }
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -931,7 +1054,7 @@ function Vertex(x, y) {
 }
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -945,11 +1068,11 @@ var _config = __webpack_require__(0);
 
 var _config2 = _interopRequireDefault(_config);
 
-var _canvasUtil = __webpack_require__(7);
+var _canvasUtil = __webpack_require__(4);
 
 var util = _interopRequireWildcard(_canvasUtil);
 
-var _vector_util = __webpack_require__(4);
+var _vector_util = __webpack_require__(5);
 
 var vectorUtil = _interopRequireWildcard(_vector_util);
 
@@ -1130,35 +1253,6 @@ function Bullet(x, y, dx, dy, sector, lifetime, fireSpeed, color, owner) {
 }
 
 /***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.randomIntFromRange = randomIntFromRange;
-exports.randomColor = randomColor;
-exports.getDistance = getDistance;
-// Utility Functions
-function randomIntFromRange(min, max) {
-  return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
-function randomColor(colors) {
-  return colors[Math.floor(Math.random() * colors.length)];
-}
-
-function getDistance(x1, y1, x2, y2) {
-  var xDistance = x2 - x1;
-  var yDistance = y2 - y1;
-
-  return Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
-}
-
-/***/ }),
 /* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1255,7 +1349,7 @@ var _Player = __webpack_require__(1);
 
 var _Player2 = _interopRequireDefault(_Player);
 
-var _Vertex = __webpack_require__(5);
+var _Vertex = __webpack_require__(6);
 
 var _Vertex2 = _interopRequireDefault(_Vertex);
 
@@ -1282,7 +1376,7 @@ _config2.default.c = _config2.default.canvas.getContext('2d');
 _config2.default.canvas.width = innerWidth;
 _config2.default.canvas.height = innerHeight;
 
-_config2.default.player = new _Player2.default(150, 100, _config2.default.entityId++);
+_config2.default.player = new _Player2.default(150, 200, _config2.default.entityId++);
 
 // Variables
 var mouse = {
@@ -1365,9 +1459,11 @@ function init() {
   sector1.addPlayer(_config2.default.player);
 
   //todo: Want to shift this info sections again, but when other sections "overdraw" stuff like bullets
-  var enemy = new _Enemy2.default(280, 170, 3, 1, _config2.default.entityId++);
+  var enemyVertex = sector4.randomVertex(_config2.default.enemyRadius);
+  console.log(enemyVertex.x, enemyVertex.y);
+  var enemy = new _Enemy2.default(enemyVertex.x, enemyVertex.y, 3, 4, _config2.default.entityId++);
   _config2.default.enemies.push(enemy);
-  sector1.addEnemy(enemy);
+  sector4.addEnemy(enemy);
 }
 
 // Update all objects

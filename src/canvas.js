@@ -12,7 +12,7 @@ config.c = config.canvas.getContext('2d');
 config.canvas.width = innerWidth;
 config.canvas.height = innerHeight;
 
-config.player = new Player(150, 100, config.entityId++);
+config.player = new Player(150, 200, config.entityId++);
 
 // Variables
 let mouse = {
@@ -38,7 +38,7 @@ onkeydown = onkeyup = function(event){
     event.preventDefault();
   }
   config.map[event.keyCode] = event.type == 'keydown';
-}
+};
 
 function init() {
   let vertices1 = [], vertices2 = [], vertices3 = [], vertices4 = [];
@@ -92,9 +92,11 @@ function init() {
   sector1.addPlayer(config.player);
 
   //todo: Want to shift this info sections again, but when other sections "overdraw" stuff like bullets
-  let enemy = new Enemy(280, 170, 3, 1, config.entityId++);
+  let enemyVertex = sector4.randomVertex(config.enemyRadius);
+  console.log(enemyVertex.x, enemyVertex.y);
+  let enemy = new Enemy(enemyVertex.x, enemyVertex.y, 3, 4, config.entityId++);
   config.enemies.push(enemy);
-  sector1.addEnemy(enemy);
+  sector4.addEnemy(enemy);
 }
 
 // Update all objects
