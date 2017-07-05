@@ -14,7 +14,7 @@ function Enemy(x, y, hp, sector, id) {
   this.id = id;
 
   this.attackDelay = 140;
-  this.lastAttack = this.attackDelay;
+  this.lastAttack = 0;
   this.numberOfBullets = 9;
   this.bullets = [];
 
