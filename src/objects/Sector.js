@@ -4,6 +4,7 @@ import * as util from '../util/canvas-util';
 import Vertex from './Vertex';
 import Enemy from './Enemy';
 import Player from './Player';
+import RapidFire from './effects/RapidFire';
 
 export default Sector;
 
@@ -19,6 +20,7 @@ function Sector(id, vertices, color) {
   this.neighbours = [];
   this.enemies = [];
   this.players = [];
+  this.effects = [];
 
   this.addVertex = function (vertex) {
     this.vertices.push(vertex);
@@ -135,6 +137,13 @@ function Sector(id, vertices, color) {
         this.enemies.splice(index, 1);
       }
     }
+
+    for (let [index, effect] of this.effects.entries()) {
+      //todo: update enemy here
+      if(effect.lifetime <= 0) {
+        this.effects.splice(index, 1);
+      }
+    }
   };
 
   this.removePlayer = function (player) {
@@ -175,6 +184,18 @@ function Sector(id, vertices, color) {
 
     if (random >= 10) {
       this.spawnEnemy();
+    } else if (random >= 8 && random <= 9) {
+      let vertex = this.randomVertex();
+      this.effects.push(new RapidFire(vertex.x, vertex.y, this, 'red', 400));
+    }
+  };
+
+  this.spawnEffects = function () {
+    let random = util.randomIntFromRange(1,10);
+
+    if (random >= 4 && random <= 9) {
+      let vertex = this.randomVertex();
+      this.effects.push(new RapidFire(vertex.x, vertex.y, this, 'red', 400));
     }
   };
 
@@ -253,4 +274,6 @@ function Sector(id, vertices, color) {
 
     return inside;
   };
+
+  this.spawnEffects();
 }

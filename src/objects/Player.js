@@ -22,6 +22,13 @@ function Player(x, y, id) {
   this.bulletDelay = 15;
   this.lastBullet = this.bulletDelay;
 
+  // effects
+  this.activeEffects = {};
+
+  this.speedAddition = 1;
+  this.fireAddition = 1;
+  this.fireDelay = 1;
+
   this.update = function () {
     for (let [index, bullet] of this.bullets.entries()) {
       bullet.update();
@@ -30,6 +37,8 @@ function Player(x, y, id) {
         bullet.delete();
       }
     }
+
+    this.handleEffects();
 
     this.lastBullet++;
   };
@@ -43,8 +52,8 @@ function Player(x, y, id) {
           (Math.cos(this.angle) + (this.x)) - (this.x),
           (Math.sin(this.angle) + (this.y)) - (this.y),
           this.getSector(),
-          60,
-          5,
+          60 * this.fireDelay,
+          5 * this.fireAddition,
           'rgb(255,215,0)',
           this
         )
@@ -140,6 +149,26 @@ function Player(x, y, id) {
       this.hp--;
     } else {
       console.log('GAME OVER');
+    }
+  };
+
+  this.boostFire = function (effect, duration, delay) {
+    this.activeEffects['fire'] = {
+      effect: effect,
+      duration: duration,
+      delay: delay
+    }
+  };
+
+  this.handleEffects = function () {
+    // handle boostFire effect
+    if (this.activeEffects['fire'] && this.activeEffects['fire'].duration > 0) {
+      this.fireAddition = this.activeEffects['fire'].effect;
+      this.fireDelay = this.activeEffects['fire'].delay;
+      this.activeEffects['fire'].duration -= 1;
+    } else {
+      this.fireAddition = 1;
+      this.fireDelay= 1;
     }
   };
 

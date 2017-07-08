@@ -161,6 +161,13 @@ function Player(x, y, id) {
   this.bulletDelay = 15;
   this.lastBullet = this.bulletDelay;
 
+  // effects
+  this.activeEffects = {};
+
+  this.speedAddition = 1;
+  this.fireAddition = 1;
+  this.fireDelay = 1;
+
   this.update = function () {
     var _iteratorNormalCompletion = true;
     var _didIteratorError = false;
@@ -196,12 +203,14 @@ function Player(x, y, id) {
       }
     }
 
+    this.handleEffects();
+
     this.lastBullet++;
   };
 
   this.fire = function () {
     if (this.lastBullet >= this.bulletDelay) {
-      this.bullets.push(new _Bullet2.default(this.x, this.y, Math.cos(this.angle) + this.x - this.x, Math.sin(this.angle) + this.y - this.y, this.getSector(), 60, 5, 'rgb(255,215,0)', this));
+      this.bullets.push(new _Bullet2.default(this.x, this.y, Math.cos(this.angle) + this.x - this.x, Math.sin(this.angle) + this.y - this.y, this.getSector(), 60 * this.fireDelay, 5 * this.fireAddition, 'rgb(255,215,0)', this));
       this.lastBullet = 0;
     }
   };
@@ -321,6 +330,26 @@ function Player(x, y, id) {
     }
   };
 
+  this.boostFire = function (effect, duration, delay) {
+    this.activeEffects['fire'] = {
+      effect: effect,
+      duration: duration,
+      delay: delay
+    };
+  };
+
+  this.handleEffects = function () {
+    // handle boostFire effect
+    if (this.activeEffects['fire'] && this.activeEffects['fire'].duration > 0) {
+      this.fireAddition = this.activeEffects['fire'].effect;
+      this.fireDelay = this.activeEffects['fire'].delay;
+      this.activeEffects['fire'].duration -= 1;
+    } else {
+      this.fireAddition = 1;
+      this.fireDelay = 1;
+    }
+  };
+
   this.draw = function () {
     _config2.default.c.beginPath();
     _config2.default.c.moveTo(this.x, this.y);
@@ -400,6 +429,10 @@ var _Player = __webpack_require__(1);
 
 var _Player2 = _interopRequireDefault(_Player);
 
+var _RapidFire = __webpack_require__(11);
+
+var _RapidFire2 = _interopRequireDefault(_RapidFire);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -419,6 +452,7 @@ function Sector(id, vertices, color) {
   this.neighbours = [];
   this.enemies = [];
   this.players = [];
+  this.effects = [];
 
   this.addVertex = function (vertex) {
     this.vertices.push(vertex);
@@ -670,6 +704,39 @@ function Sector(id, vertices, color) {
         }
       }
     }
+
+    var _iteratorNormalCompletion7 = true;
+    var _didIteratorError7 = false;
+    var _iteratorError7 = undefined;
+
+    try {
+      for (var _iterator7 = this.effects.entries()[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+        var _ref5 = _step7.value;
+
+        var _ref6 = _slicedToArray(_ref5, 2);
+
+        var _index = _ref6[0];
+        var effect = _ref6[1];
+
+        //todo: update enemy here
+        if (effect.lifetime <= 0) {
+          this.effects.splice(_index, 1);
+        }
+      }
+    } catch (err) {
+      _didIteratorError7 = true;
+      _iteratorError7 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion7 && _iterator7.return) {
+          _iterator7.return();
+        }
+      } finally {
+        if (_didIteratorError7) {
+          throw _iteratorError7;
+        }
+      }
+    }
   };
 
   this.removePlayer = function (player) {
@@ -710,6 +777,18 @@ function Sector(id, vertices, color) {
 
     if (random >= 10) {
       this.spawnEnemy();
+    } else if (random >= 8 && random <= 9) {
+      var vertex = this.randomVertex();
+      this.effects.push(new _RapidFire2.default(vertex.x, vertex.y, this, 'red', 400));
+    }
+  };
+
+  this.spawnEffects = function () {
+    var random = util.randomIntFromRange(1, 10);
+
+    if (random >= 4 && random <= 9) {
+      var vertex = this.randomVertex();
+      this.effects.push(new _RapidFire2.default(vertex.x, vertex.y, this, 'red', 400));
     }
   };
 
@@ -742,13 +821,13 @@ function Sector(id, vertices, color) {
     var minY = this.vertices[0].y;
     var maxY = this.vertices[0].y;
 
-    var _iteratorNormalCompletion7 = true;
-    var _didIteratorError7 = false;
-    var _iteratorError7 = undefined;
+    var _iteratorNormalCompletion8 = true;
+    var _didIteratorError8 = false;
+    var _iteratorError8 = undefined;
 
     try {
-      for (var _iterator7 = this.vertices[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-        var vertex = _step7.value;
+      for (var _iterator8 = this.vertices[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+        var vertex = _step8.value;
 
         if (vertex.x < minX) {
           minX = vertex.x;
@@ -767,16 +846,16 @@ function Sector(id, vertices, color) {
         }
       }
     } catch (err) {
-      _didIteratorError7 = true;
-      _iteratorError7 = err;
+      _didIteratorError8 = true;
+      _iteratorError8 = err;
     } finally {
       try {
-        if (!_iteratorNormalCompletion7 && _iterator7.return) {
-          _iterator7.return();
+        if (!_iteratorNormalCompletion8 && _iterator8.return) {
+          _iterator8.return();
         }
       } finally {
-        if (_didIteratorError7) {
-          throw _iteratorError7;
+        if (_didIteratorError8) {
+          throw _iteratorError8;
         }
       }
     }
@@ -805,6 +884,8 @@ function Sector(id, vertices, color) {
 
     return inside;
   };
+
+  this.spawnEffects();
 }
 
 /***/ }),
@@ -855,7 +936,7 @@ function Enemy(x, y, hp, sector, id) {
   this.id = id;
 
   this.attackDelay = 140;
-  this.lastAttack = this.attackDelay;
+  this.lastAttack = 0;
   this.numberOfBullets = 9;
   this.bullets = [];
 
@@ -1496,6 +1577,31 @@ function update() {
       var sector = _step.value;
 
       sector.update();
+
+      var _iteratorNormalCompletion3 = true;
+      var _didIteratorError3 = false;
+      var _iteratorError3 = undefined;
+
+      try {
+        for (var _iterator3 = sector.effects[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+          var effects = _step3.value;
+
+          effects.update();
+        }
+      } catch (err) {
+        _didIteratorError3 = true;
+        _iteratorError3 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion3 && _iterator3.return) {
+            _iterator3.return();
+          }
+        } finally {
+          if (_didIteratorError3) {
+            throw _iteratorError3;
+          }
+        }
+      }
     }
   } catch (err) {
     _didIteratorError = true;
@@ -1545,67 +1651,39 @@ function draw() {
   // center "camera" over player
   _config2.default.c.translate(_config2.default.xView + _config2.default.canvas.width / 2, _config2.default.yView + _config2.default.canvas.height / 2);
 
-  var _iteratorNormalCompletion3 = true;
-  var _didIteratorError3 = false;
-  var _iteratorError3 = undefined;
-
-  try {
-    for (var _iterator3 = _config2.default.sectors[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-      var sector = _step3.value;
-
-      sector.draw();
-    }
-  } catch (err) {
-    _didIteratorError3 = true;
-    _iteratorError3 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion3 && _iterator3.return) {
-        _iterator3.return();
-      }
-    } finally {
-      if (_didIteratorError3) {
-        throw _iteratorError3;
-      }
-    }
-  }
-
   var _iteratorNormalCompletion4 = true;
   var _didIteratorError4 = false;
   var _iteratorError4 = undefined;
 
   try {
-    for (var _iterator4 = _config2.default.enemies[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-      var enemy = _step4.value;
-      var _iteratorNormalCompletion6 = true;
-      var _didIteratorError6 = false;
-      var _iteratorError6 = undefined;
+    for (var _iterator4 = _config2.default.sectors[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      var sector = _step4.value;
+
+      sector.draw();
+
+      var _iteratorNormalCompletion7 = true;
+      var _didIteratorError7 = false;
+      var _iteratorError7 = undefined;
 
       try {
-        for (var _iterator6 = enemy.bullets[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-          var _bullet = _step6.value;
+        for (var _iterator7 = sector.effects[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+          var effects = _step7.value;
 
-          if (_bullet.lifetime > 0) {
-            _bullet.draw();
-          }
+          effects.draw();
         }
       } catch (err) {
-        _didIteratorError6 = true;
-        _iteratorError6 = err;
+        _didIteratorError7 = true;
+        _iteratorError7 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion6 && _iterator6.return) {
-            _iterator6.return();
+          if (!_iteratorNormalCompletion7 && _iterator7.return) {
+            _iterator7.return();
           }
         } finally {
-          if (_didIteratorError6) {
-            throw _iteratorError6;
+          if (_didIteratorError7) {
+            throw _iteratorError7;
           }
         }
-      }
-
-      if (enemy.hp > 0) {
-        enemy.draw();
       }
     }
   } catch (err) {
@@ -1628,11 +1706,37 @@ function draw() {
   var _iteratorError5 = undefined;
 
   try {
-    for (var _iterator5 = _config2.default.player.bullets[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-      var bullet = _step5.value;
+    for (var _iterator5 = _config2.default.enemies[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+      var enemy = _step5.value;
+      var _iteratorNormalCompletion8 = true;
+      var _didIteratorError8 = false;
+      var _iteratorError8 = undefined;
 
-      if (bullet.lifetime > 0) {
-        bullet.draw();
+      try {
+        for (var _iterator8 = enemy.bullets[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var _bullet = _step8.value;
+
+          if (_bullet.lifetime > 0) {
+            _bullet.draw();
+          }
+        }
+      } catch (err) {
+        _didIteratorError8 = true;
+        _iteratorError8 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion8 && _iterator8.return) {
+            _iterator8.return();
+          }
+        } finally {
+          if (_didIteratorError8) {
+            throw _iteratorError8;
+          }
+        }
+      }
+
+      if (enemy.hp > 0) {
+        enemy.draw();
       }
     }
   } catch (err) {
@@ -1646,6 +1750,33 @@ function draw() {
     } finally {
       if (_didIteratorError5) {
         throw _iteratorError5;
+      }
+    }
+  }
+
+  var _iteratorNormalCompletion6 = true;
+  var _didIteratorError6 = false;
+  var _iteratorError6 = undefined;
+
+  try {
+    for (var _iterator6 = _config2.default.player.bullets[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+      var bullet = _step6.value;
+
+      if (bullet.lifetime > 0) {
+        bullet.draw();
+      }
+    }
+  } catch (err) {
+    _didIteratorError6 = true;
+    _iteratorError6 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion6 && _iterator6.return) {
+        _iterator6.return();
+      }
+    } finally {
+      if (_didIteratorError6) {
+        throw _iteratorError6;
       }
     }
   }
@@ -1666,6 +1797,109 @@ function animate() {
 
 init();
 animate();
+
+/***/ }),
+/* 10 */,
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _config = __webpack_require__(0);
+
+var _config2 = _interopRequireDefault(_config);
+
+var _canvasUtil = __webpack_require__(4);
+
+var util = _interopRequireWildcard(_canvasUtil);
+
+var _Sector = __webpack_require__(2);
+
+var _Sector2 = _interopRequireDefault(_Sector);
+
+var _Player = __webpack_require__(1);
+
+var _Player2 = _interopRequireDefault(_Player);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = RapidFire;
+
+// Bullet
+
+function RapidFire(x, y, sector, color, duration) {
+  this.x = x;
+  this.y = y;
+  this.radius = 5;
+  this.sector = sector;
+  this.color = color;
+  this.duration = duration;
+  this.effect = 1.5;
+  this.fireDelay = 0.5;
+  this.lifetime = 1;
+
+  this.update = function () {
+    this.hitCheckPlayer();
+
+    // Keep effect until its picked up for now
+    // if(this.lifetime > 0) {
+    //   this.lifetime -= 1;
+    // }
+  };
+
+  this.hitCheckPlayer = function () {
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = this.sector.players[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var player = _step.value;
+
+        if (util.getDistance(player.x, player.y, this.x, this.y) < this.radius + player.height) {
+          player.boostFire(this.effect, this.duration, this.fireDelay);
+          this.removeEffect();
+        }
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
+      }
+    }
+  };
+
+  this.draw = function () {
+    _config2.default.c.beginPath();
+    _config2.default.c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+    _config2.default.c.fillStyle = this.color;
+    _config2.default.c.fill();
+    _config2.default.c.closePath();
+  };
+
+  this.removeEffect = function () {
+    this.lifetime = 0;
+  };
+
+  this.delete = function () {
+    delete this;
+  };
+}
 
 /***/ })
 /******/ ]);

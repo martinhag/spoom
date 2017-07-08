@@ -90,7 +90,7 @@ function init() {
 
   config.player.setSector(1);
   sector1.enterSector(config.player);
-  
+
   // let enemyVertex = sector4.randomVertex(config.enemyRadius);
   // console.log(enemyVertex.x, enemyVertex.y);
   // let enemy = new Enemy(enemyVertex.x, enemyVertex.y, 3, 4, config.entityId++);
@@ -104,6 +104,10 @@ function update() {
 
   for (let sector of config.sectors) {
     sector.update();
+
+    for (let effects of sector.effects) {
+      effects.update();
+    }
   }
 
   for (let enemy of config.enemies) {
@@ -120,6 +124,10 @@ function draw() {
 
   for (let sector of config.sectors) {
     sector.draw();
+
+    for (let effects of sector.effects) {
+      effects.draw();
+    }
   }
 
   for (let enemy of config.enemies) {
@@ -138,6 +146,7 @@ function draw() {
       bullet.draw();
     }
   }
+
   config.player.draw();
 
   config.c.restore();
