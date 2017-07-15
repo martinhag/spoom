@@ -7,6 +7,7 @@ var config = require('./util/config');
 
 config.socket = io();
 config.socket.on('createPlayer', function(id) {
+  console.log(id);
   config.player = new Player(150, 200, id);
   config.players.push(config.player);
   
@@ -16,8 +17,15 @@ config.socket.on('createPlayer', function(id) {
   config.socket.emit('addPlayers', JSON.stringify(config.player));
 });
 
-config.socket.on('init', function(data) {
-  console.log('canvas', data);
+config.socket.on('initGame', function(data) {
+  // let players = JSON.parse(JSON.stringify(data));
+
+  for (let p of data) {
+    if (p !== null && config.socket.id !== p.id) {
+      config.players.push(new Player(p.x, p.y, p.id));
+    }
+    // console.log(players, config.players);
+  }
 });
 
 config.socket.on('updatePlayers', function(data) {
@@ -26,6 +34,32 @@ config.socket.on('updatePlayers', function(data) {
   // Update rest of variables
 
   config.players.push(newPlayer)
+});
+
+config.socket.on('updateState', function(data) {
+  if (data === null) {
+    return;
+  }
+
+  let removePlayers = {};
+
+  // Update x,y pos every sec (corrigation from server)
+  for (let i = 0; i < config.players.length; i++) {
+    for (let j = 0; j < data.length; j++) {
+      if (data[j].id === config.players[i].id) {
+        config.players[i].x = data[j].x;
+        config.players[i].y = data[j].y;
+        removePlayers[i] = false;
+      }
+    }
+  }
+
+  //Clean up players array
+  for (let i = 0; i < config.players.length; i++) {
+    if (removePlayers[i] === undefined) {
+      config.players.splice(i, 1);
+    }
+  }
 });
 
 config.socket.on('movePlayer', function(data) {
@@ -181,12 +215,14 @@ function draw() {
   }
 
   for (let player of config.players) {
-    for (let bullet of player.bullets) {
-      if (bullet.lifetime > 0) {
-        bullet.draw();
+    if (player !== null) {
+      for (let bullet of player.bullets) {
+        if (bullet.lifetime > 0) {
+          bullet.draw();
+        }
       }
+      player.draw();
     }
-    player.draw();
   }
 
   config.c.restore();

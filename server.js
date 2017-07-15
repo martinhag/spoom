@@ -28,11 +28,15 @@ server.listen(5000, function() {
 
 // Add the WebSocket handlers
 io.on('connection', function(socket) {
+  io.to(socket.id).emit('initGame', config.players);
   io.to(socket.id).emit('createPlayer', socket.id);
 
   socket.on('addPlayers', function (data) {
     // Set rest of variables
-    config.players.push(data);
+    p = JSON.parse(data);
+    let newPlayer = new Player(p.x, p.y, p.id);
+
+    config.players.push(newPlayer);
     
     socket.broadcast.emit('updatePlayers', data);
   });
@@ -58,10 +62,19 @@ io.on('connection', function(socket) {
 
     socket.broadcast.emit('movePlayer', data);
   });
+
+  socket.on('disconnect', function() {
+    let playerIndex = config.players.findIndex(i => i.id === socket.id);
+    
+    if (playerIndex !== -1) {
+      console.log('removing player', socket.id);
+      config.players.splice(playerIndex, 1);
+    }
+  });
 });
 
 setInterval(function() {
-  // io.sockets.emit('message', 'hi!');
+  io.sockets.emit('updateState', config.players);
 }, 1000);
 
 

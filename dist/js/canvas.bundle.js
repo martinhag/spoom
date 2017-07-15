@@ -1437,6 +1437,7 @@ var config = __webpack_require__(0);
 
 config.socket = io();
 config.socket.on('createPlayer', function (id) {
+  console.log(id);
   config.player = new Player(150, 200, id);
   config.players.push(config.player);
 
@@ -1446,8 +1447,36 @@ config.socket.on('createPlayer', function (id) {
   config.socket.emit('addPlayers', JSON.stringify(config.player));
 });
 
-config.socket.on('init', function (data) {
-  console.log('canvas', data);
+config.socket.on('initGame', function (data) {
+  // let players = JSON.parse(JSON.stringify(data));
+
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = data[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var p = _step.value;
+
+      if (p !== null && config.socket.id !== p.id) {
+        config.players.push(new Player(p.x, p.y, p.id));
+      }
+      // console.log(players, config.players);
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
 });
 
 config.socket.on('updatePlayers', function (data) {
@@ -1456,6 +1485,32 @@ config.socket.on('updatePlayers', function (data) {
   // Update rest of variables
 
   config.players.push(newPlayer);
+});
+
+config.socket.on('updateState', function (data) {
+  if (data === null) {
+    return;
+  }
+
+  var removePlayers = {};
+
+  // Update x,y pos every sec (corrigation from server)
+  for (var i = 0; i < config.players.length; i++) {
+    for (var j = 0; j < data.length; j++) {
+      if (data[j].id === config.players[i].id) {
+        config.players[i].x = data[j].x;
+        config.players[i].y = data[j].y;
+        removePlayers[i] = false;
+      }
+    }
+  }
+
+  //Clean up players array
+  for (var _i = 0; _i < config.players.length; _i++) {
+    if (removePlayers[_i] === undefined) {
+      config.players.splice(_i, 1);
+    }
+  }
 });
 
 config.socket.on('movePlayer', function (data) {
@@ -1573,65 +1628,40 @@ function init() {
 
 // Update all objects
 function update() {
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
-
-  try {
-    for (var _iterator = config.sectors[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var sector = _step.value;
-
-      sector.update();
-
-      var _iteratorNormalCompletion3 = true;
-      var _didIteratorError3 = false;
-      var _iteratorError3 = undefined;
-
-      try {
-        for (var _iterator3 = sector.effects[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-          var effects = _step3.value;
-
-          effects.update();
-        }
-      } catch (err) {
-        _didIteratorError3 = true;
-        _iteratorError3 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion3 && _iterator3.return) {
-            _iterator3.return();
-          }
-        } finally {
-          if (_didIteratorError3) {
-            throw _iteratorError3;
-          }
-        }
-      }
-    }
-  } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
-      }
-    } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
-      }
-    }
-  }
-
   var _iteratorNormalCompletion2 = true;
   var _didIteratorError2 = false;
   var _iteratorError2 = undefined;
 
   try {
-    for (var _iterator2 = config.enemies[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-      var enemy = _step2.value;
+    for (var _iterator2 = config.sectors[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+      var sector = _step2.value;
 
-      enemy.update();
+      sector.update();
+
+      var _iteratorNormalCompletion4 = true;
+      var _didIteratorError4 = false;
+      var _iteratorError4 = undefined;
+
+      try {
+        for (var _iterator4 = sector.effects[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+          var effects = _step4.value;
+
+          effects.update();
+        }
+      } catch (err) {
+        _didIteratorError4 = true;
+        _iteratorError4 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion4 && _iterator4.return) {
+            _iterator4.return();
+          }
+        } finally {
+          if (_didIteratorError4) {
+            throw _iteratorError4;
+          }
+        }
+      }
     }
   } catch (err) {
     _didIteratorError2 = true;
@@ -1648,6 +1678,31 @@ function update() {
     }
   }
 
+  var _iteratorNormalCompletion3 = true;
+  var _didIteratorError3 = false;
+  var _iteratorError3 = undefined;
+
+  try {
+    for (var _iterator3 = config.enemies[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+      var enemy = _step3.value;
+
+      enemy.update();
+    }
+  } catch (err) {
+    _didIteratorError3 = true;
+    _iteratorError3 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion3 && _iterator3.return) {
+        _iterator3.return();
+      }
+    } finally {
+      if (_didIteratorError3) {
+        throw _iteratorError3;
+      }
+    }
+  }
+
   if (config.player) {
     inputHandler.handleInput();
     config.player.update();
@@ -1659,74 +1714,25 @@ function draw() {
   // center "camera" over player
   config.c.translate(config.xView + config.canvas.width / 2, config.yView + config.canvas.height / 2);
 
-  var _iteratorNormalCompletion4 = true;
-  var _didIteratorError4 = false;
-  var _iteratorError4 = undefined;
-
-  try {
-    for (var _iterator4 = config.sectors[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-      var sector = _step4.value;
-
-      sector.draw();
-
-      var _iteratorNormalCompletion7 = true;
-      var _didIteratorError7 = false;
-      var _iteratorError7 = undefined;
-
-      try {
-        for (var _iterator7 = sector.effects[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-          var effects = _step7.value;
-
-          effects.draw();
-        }
-      } catch (err) {
-        _didIteratorError7 = true;
-        _iteratorError7 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion7 && _iterator7.return) {
-            _iterator7.return();
-          }
-        } finally {
-          if (_didIteratorError7) {
-            throw _iteratorError7;
-          }
-        }
-      }
-    }
-  } catch (err) {
-    _didIteratorError4 = true;
-    _iteratorError4 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion4 && _iterator4.return) {
-        _iterator4.return();
-      }
-    } finally {
-      if (_didIteratorError4) {
-        throw _iteratorError4;
-      }
-    }
-  }
-
   var _iteratorNormalCompletion5 = true;
   var _didIteratorError5 = false;
   var _iteratorError5 = undefined;
 
   try {
-    for (var _iterator5 = config.enemies[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-      var enemy = _step5.value;
+    for (var _iterator5 = config.sectors[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+      var sector = _step5.value;
+
+      sector.draw();
+
       var _iteratorNormalCompletion8 = true;
       var _didIteratorError8 = false;
       var _iteratorError8 = undefined;
 
       try {
-        for (var _iterator8 = enemy.bullets[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-          var bullet = _step8.value;
+        for (var _iterator8 = sector.effects[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+          var effects = _step8.value;
 
-          if (bullet.lifetime > 0) {
-            bullet.draw();
-          }
+          effects.draw();
         }
       } catch (err) {
         _didIteratorError8 = true;
@@ -1741,10 +1747,6 @@ function draw() {
             throw _iteratorError8;
           }
         }
-      }
-
-      if (enemy.hp > 0) {
-        enemy.draw();
       }
     }
   } catch (err) {
@@ -1767,18 +1769,18 @@ function draw() {
   var _iteratorError6 = undefined;
 
   try {
-    for (var _iterator6 = config.players[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-      var player = _step6.value;
+    for (var _iterator6 = config.enemies[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+      var enemy = _step6.value;
       var _iteratorNormalCompletion9 = true;
       var _didIteratorError9 = false;
       var _iteratorError9 = undefined;
 
       try {
-        for (var _iterator9 = player.bullets[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-          var _bullet = _step9.value;
+        for (var _iterator9 = enemy.bullets[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+          var bullet = _step9.value;
 
-          if (_bullet.lifetime > 0) {
-            _bullet.draw();
+          if (bullet.lifetime > 0) {
+            bullet.draw();
           }
         }
       } catch (err) {
@@ -1796,7 +1798,9 @@ function draw() {
         }
       }
 
-      player.draw();
+      if (enemy.hp > 0) {
+        enemy.draw();
+      }
     }
   } catch (err) {
     _didIteratorError6 = true;
@@ -1809,6 +1813,60 @@ function draw() {
     } finally {
       if (_didIteratorError6) {
         throw _iteratorError6;
+      }
+    }
+  }
+
+  var _iteratorNormalCompletion7 = true;
+  var _didIteratorError7 = false;
+  var _iteratorError7 = undefined;
+
+  try {
+    for (var _iterator7 = config.players[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+      var player = _step7.value;
+
+      if (player !== null) {
+        var _iteratorNormalCompletion10 = true;
+        var _didIteratorError10 = false;
+        var _iteratorError10 = undefined;
+
+        try {
+          for (var _iterator10 = player.bullets[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+            var _bullet = _step10.value;
+
+            if (_bullet.lifetime > 0) {
+              _bullet.draw();
+            }
+          }
+        } catch (err) {
+          _didIteratorError10 = true;
+          _iteratorError10 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion10 && _iterator10.return) {
+              _iterator10.return();
+            }
+          } finally {
+            if (_didIteratorError10) {
+              throw _iteratorError10;
+            }
+          }
+        }
+
+        player.draw();
+      }
+    }
+  } catch (err) {
+    _didIteratorError7 = true;
+    _iteratorError7 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion7 && _iterator7.return) {
+        _iterator7.return();
+      }
+    } finally {
+      if (_didIteratorError7) {
+        throw _iteratorError7;
       }
     }
   }
