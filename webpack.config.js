@@ -28,15 +28,6 @@ module.exports = {
 			}
 		]
 	},
-	plugins: [
-		new ExtractTextPlugin("../css/style.css"),
-	    new BrowserSyncPlugin({
-	        host: 'localhost',
-      		port: 3000,
-	        server: {baseDir: ['dist']},
-	        files: ['./dist/*']
-		}),
-	],
 	watch: true,
 	devtool: 'source-map'
 };

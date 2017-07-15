@@ -1,12 +1,13 @@
-import config from '../util/config';
-import * as vectorUtil from '../util/vector_util';
-import Sector from './Sector';
-import Bullet from './Bullet';
+var config = require('../util/config');
+var vectorUtil = require('../util/vector_util');
+var Sector = require('./Sector');
+var Bullet = require('./Bullet');
 
-export default Player;
+module.exports = Player;
 
 // Player
-function Player(x, y, id) {
+function Player (x, y, id) {
+  this.id = id;
   this.x = x;
   this.y = y;
   this.angle = 0;
@@ -14,7 +15,6 @@ function Player(x, y, id) {
   this.height = 9;
   this.maxHp = config.playerMaxHp;
   this.hp = this.maxHp;
-  this.id = id;
   this.currentSector = undefined;
 
   this.vecAddition = []
@@ -24,7 +24,6 @@ function Player(x, y, id) {
 
   // effects
   this.activeEffects = {};
-
   this.speedAddition = 1;
   this.fireAddition = 1;
   this.fireDelay = 1;
@@ -63,11 +62,38 @@ function Player(x, y, id) {
   };
 
   this.move = function () {
+    let prevX = this.x;
+    let prevY = this.y;
+
     this.x += this.vecAddition[0] * this.getSector().friction;
     this.y += this.vecAddition[1] * this.getSector().friction;
 
     config.xView = -this.x;
     config.yView = -this.y;
+
+    if (prevX !== this.x || prevY !== this.y) {
+      config.socket.emit('updatePlayer', {
+        x: this.x,
+        y: this.y,
+        angle: undefined,
+        id: config.socket.id
+      });
+    }
+  };
+
+  this.updateAngle = function (up) {
+    if (up) {
+      this.angle += config.angleAdjustments;
+    } else {
+      this.angle -= config.angleAdjustments;
+    }
+
+    config.socket.emit('updatePlayer', {
+      x: undefined,
+      y: undefined,
+      angle: this.angle,
+      id: config.socket.id
+    });
   };
 
   this.updatePos = function (vecAddition) {
@@ -120,7 +146,7 @@ function Player(x, y, id) {
       this.getSector().removePlayer(this);
       this.setSector(n.id);
       this.getSector().enterSector(this);
-      
+
       //after changing sector, will you hit a wall?
       if( (Math.min(a.x, b.x) > this.x+vecAddition[0] || this.x+vecAddition[0] > Math.max(a.x, b.x)) &&
         (Math.min(a.y, b.y) > this.y+vecAddition[1] || this.y+vecAddition[1] > Math.max(a.y, b.y))  ){
@@ -130,7 +156,7 @@ function Player(x, y, id) {
       }
       this.vecAddition = vecAddition;
       this.move();
-      
+
       return true;
     }
     return false;

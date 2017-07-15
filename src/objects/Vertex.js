@@ -1,7 +1,6 @@
-export default Vertex;
+module.exports = Vertex;
 
-// Vertex
-function Vertex(x, y) {
+function Vertex (x, y) {
   this.x = x;
   this.y = y;
 

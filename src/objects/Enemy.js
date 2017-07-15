@@ -1,12 +1,14 @@
-import config from '../util/config';
-import * as util from '../util/canvas-util';
-import Sector from './Sector';
-import Bullet from './Bullet';
-import Player from './Player';
+var config = require('../util/config');
+var util = require('../util/canvas-util');
+var Vertex = require('./Vertex');
+var Sector = require('./Sector');
+var Player = require('./Player');
+var Bullet = require('./Bullet');
+var RapidFire = require('./effects/RapidFire');
 
-export default Enemy;
+module.exports = Enemy;
 
-function Enemy(x, y, hp, sector, id) {
+function Enemy (x, y, hp, sector, id) {
   this.x = x;
   this.y = y;
   this.color = 'yellow';
@@ -86,4 +88,4 @@ function Enemy(x, y, hp, sector, id) {
   this.getSector = function () {
     return config.sectors.filter(sector => sector.id === this.sector)[0];
   };
-}
+};

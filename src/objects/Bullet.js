@@ -1,14 +1,15 @@
-import config from '../util/config';
-import * as util from '../util/canvas-util';
-import * as vectorUtil from '../util/vector_util';
-import Sector from './Sector';
-import Enemy from './Enemy';
-import Player from './Player';
+var config = require('../util/config');
+var util = require('../util/canvas-util');
+var vectorUtil = require('../util/vector_util');
+var Vertex = require('./Vertex');
+var Sector = require('./Sector');
+var Player = require('./Player');
+var Enemy = require('./Enemy');
 
-export default Bullet;
+module.exports = Bullet;
 
 // Bullet
-function Bullet(x, y, dx, dy, sector, lifetime, fireSpeed, color, owner) {
+function Bullet (x, y, dx, dy, sector, lifetime, fireSpeed, color, owner) {
   this.x = x;
   this.y = y;
   this.radius = 3;
@@ -21,12 +22,13 @@ function Bullet(x, y, dx, dy, sector, lifetime, fireSpeed, color, owner) {
   this.owner = owner;
 
   this.update = function () {
-    //Check if bullet hit players og enemy
-    if(this.owner instanceof Player) {
-      this.hitCheckEnemy();
-    } else {
-      this.hitCheckPlayer();
-    }
+    //Check if bullet hits player og enemy
+    // if(this.owner instanceof new Player) {
+    // console.log(this.owner);
+    this.hitCheckEnemy();
+    // } else {
+    //   this.hitCheckPlayer();
+    // }
 
     let vertices = this.sector.vertices;
     let neighbours = this.sector.neighbours;
@@ -93,7 +95,7 @@ function Bullet(x, y, dx, dy, sector, lifetime, fireSpeed, color, owner) {
 
   this.stopBullet = function () {
     this.lifetime = 0;
-  }
+  };
 
   this.delete = function () {
     delete this;

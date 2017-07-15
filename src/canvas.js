@@ -1,9 +1,52 @@
-import * as inputHandler from './inputHandler';
-import Player from './objects/Player';
-import Vertex from './objects/Vertex';
-import Sector from './objects/Sector';
-import Enemy from './objects/Enemy';
-import config from './util/config';
+var inputHandler = require('./inputHandler');
+var Player = require('./objects/Player');
+var Vertex = require('./objects/Vertex');
+var Sector = require('./objects/Sector');
+var Enemy = require('./objects/Enemy');
+var config = require('./util/config');
+
+config.socket = io();
+config.socket.on('createPlayer', function(id) {
+  config.player = new Player(150, 200, id);
+  config.players.push(config.player);
+  
+  config.player.setSector(1);
+  config.sectors[0].enterSector(config.player);
+  
+  config.socket.emit('addPlayers', JSON.stringify(config.player));
+});
+
+config.socket.on('init', function(data) {
+  console.log('canvas', data);
+});
+
+config.socket.on('updatePlayers', function(data) {
+  data = JSON.parse(data);
+  let newPlayer = new Player(data.x, data.y, data.id);
+  // Update rest of variables
+
+  config.players.push(newPlayer)
+});
+
+config.socket.on('movePlayer', function(data) {
+  let playerIndex = config.players.findIndex(i => i.id === data.id);
+
+  if ( playerIndex !== -1) {
+    let player = config.players[playerIndex];
+
+    if (data.x !== undefined) {
+      player.x = data.x;
+    }
+    if (data.y !== undefined) {
+      player.y = data.y;
+    }
+    if (data.angle !== undefined) {
+      player.angle = data.angle;
+    }
+
+    config.players[playerIndex] = player;
+  }
+});
 
 // // Initial Setup
 config.canvas = document.querySelector('canvas');
@@ -11,8 +54,6 @@ config.c = config.canvas.getContext('2d');
 
 config.canvas.width = innerWidth;
 config.canvas.height = innerHeight;
-
-config.player = new Player(150, 200, config.entityId++);
 
 // Variables
 let mouse = {
@@ -88,9 +129,6 @@ function init() {
   config.sectors.push(sector3);
   config.sectors.push(sector4);
 
-  config.player.setSector(1);
-  sector1.enterSector(config.player);
-
   // let enemyVertex = sector4.randomVertex(config.enemyRadius);
   // console.log(enemyVertex.x, enemyVertex.y);
   // let enemy = new Enemy(enemyVertex.x, enemyVertex.y, 3, 4, config.entityId++);
@@ -100,8 +138,6 @@ function init() {
 
 // Update all objects
 function update() {
-  inputHandler.handleInput();
-
   for (let sector of config.sectors) {
     sector.update();
 
@@ -114,7 +150,10 @@ function update() {
     enemy.update();
   }
 
-  config.player.update();
+  if (config.player) {
+    inputHandler.handleInput();
+    config.player.update();
+  }
 }
 
 function draw() {
@@ -141,13 +180,14 @@ function draw() {
     }
   }
 
-  for (let bullet of config.player.bullets) {
-    if (bullet.lifetime > 0) {
-      bullet.draw();
+  for (let player of config.players) {
+    for (let bullet of player.bullets) {
+      if (bullet.lifetime > 0) {
+        bullet.draw();
+      }
     }
+    player.draw();
   }
-
-  config.player.draw();
 
   config.c.restore();
 }
@@ -156,7 +196,7 @@ function draw() {
 function animate() {
   requestAnimationFrame(animate);
   config.c.clearRect(0, 0, config.canvas.width, config.canvas.height);
-
+  // console.log(config.players);
   update();
   draw();
 }

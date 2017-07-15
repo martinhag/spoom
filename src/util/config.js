@@ -1,7 +1,8 @@
-export default {
+module.exports = {
   // Initial Setup
   canvas: null,
   c: null,
+  socket: null,
   xView: 280,
   yView: 170,
   
@@ -10,6 +11,7 @@ export default {
 
   // Objects and arrays
   player: null,
+  players: [],
   sectors: [],
   enemies: [],
   
@@ -37,4 +39,4 @@ export default {
     91
   ]
   
-}
+};

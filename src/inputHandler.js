@@ -1,7 +1,7 @@
-import config from './util/config';
-import Player from './objects/Player';
+var config = require('./util/config');
+var Player = require('./objects/Player');
 
-export function handleInput() {
+exports.handleInput = function () {
   let vecAddition = [ 0, 0 ], slower = false, back = false;
 
   //up - unused
@@ -10,11 +10,13 @@ export function handleInput() {
   }
   //left - move player angle up (left)
   if (config.map[39]) {
-    config.player.angle += config.angleAdjustments;
+    config.player.updateAngle(true);
+    // config.player.angle += config.angleAdjustments;
   }
   //right - move player angle down (right)
   if (config.map[37]) {
-    config.player.angle -= config.angleAdjustments;
+    config.player.updateAngle(false);
+    // config.player.angle -= config.angleAdjustments;
   }
   //down - unused
   if (config.map[40]) {
@@ -57,4 +59,4 @@ export function handleInput() {
   }
 
   config.player.updatePos(vecAddition);
-}
+};

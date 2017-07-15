@@ -1,12 +1,12 @@
-import config from '../../util/config';
-import * as util from '../../util/canvas-util';
-import Sector from '../Sector';
-import Player from '../Player';
+var config  = require('../../util/config');
+var util = require('../../util/canvas-util');
+var Sector = require('../Sector');
+var Player = require('../Player');
 
-export default RapidFire;
+module.exports = RapidFire;
 
 // Bullet
-function RapidFire(x, y, sector, color, duration) {
+function RapidFire (x, y, sector, color, duration) {
   this.x = x;
   this.y = y;
   this.radius = 5;

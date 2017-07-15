@@ -1,15 +1,15 @@
-import config from '../util/config';
-import * as vectorUtil from '../util/vector_util';
-import * as util from '../util/canvas-util';
-import Vertex from './Vertex';
-import Enemy from './Enemy';
-import Player from './Player';
-import RapidFire from './effects/RapidFire';
+var config = require('../util/config');
+var vectorUtil = require('../util/vector_util');
+var util = require('../util/canvas-util');
+var Vertex = require('./Vertex');
+var Enemy = require('./Enemy');
+var Player = require('./Player');
+var RapidFire = require('./effects/RapidFire');
 
-export default Sector;
+module.exports = Sector;
 
 // Sector
-function Sector(id, vertices, color) {
+function Sector (id, vertices, color) {
   this.id = id;
   this.vCount = vertices.length;
   this.friction = 1;
@@ -276,4 +276,4 @@ function Sector(id, vertices, color) {
   };
 
   this.spawnEffects();
-}
+};
