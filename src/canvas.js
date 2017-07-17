@@ -3,6 +3,7 @@ var Player = require('./objects/Player');
 var Vertex = require('./objects/Vertex');
 var Sector = require('./objects/Sector');
 var Enemy = require('./objects/Enemy');
+var Bullet = require('./objects/Bullet');
 var config = require('./util/config');
 
 config.socket = io();
@@ -18,8 +19,7 @@ config.socket.on('createPlayer', function(id) {
 });
 
 config.socket.on('initGame', function(data) {
-  // let players = JSON.parse(JSON.stringify(data));
-
+  // Only adds players so far
   for (let p of data) {
     if (p !== null && config.socket.id !== p.id) {
       config.players.push(new Player(p.x, p.y, p.id));
@@ -76,6 +76,21 @@ config.socket.on('movePlayer', function(data) {
     }
     if (data.angle !== undefined) {
       player.angle = data.angle;
+    }
+    if (data.bullet !== undefined) {
+      let sectorIndex = config.sectors.findIndex(i => i.id === data.bullet.sector);
+      
+      player.bullets.push(new Bullet(
+        data.bullet.x,
+        data.bullet.y,
+        data.bullet.dx,
+        data.bullet.dy,
+        config.sectors[sectorIndex],
+        data.bullet.lifetime,
+        data.bullet.fireSpeed,
+        data.bullet.color,
+        player
+      ));
     }
 
     config.players[playerIndex] = player;
@@ -187,6 +202,13 @@ function update() {
   if (config.player) {
     inputHandler.handleInput();
     config.player.update();
+  }
+
+  for (let player of config.players) {
+    if (player !== null && player.id !== config.player.id) {
+      // console.log('updating: ' + player.id, player.bullets);
+      player.update();
+    }
   }
 }
 

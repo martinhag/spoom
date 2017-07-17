@@ -2,6 +2,7 @@ var config = require('./src/util/config');
 var Vertex = require('./src/objects/Vertex');
 var Sector = require('./src/objects/Sector');
 var Player = require('./src/objects/Player');
+var Bullet = require('./src/objects/Bullet');
 
 // Dependencies
 var express = require('express');
@@ -28,7 +29,7 @@ server.listen(5000, function() {
 
 // Add the WebSocket handlers
 io.on('connection', function(socket) {
-  io.to(socket.id).emit('initGame', config.players);
+  io.to(socket.id).emit('initGame', getPlayersObject());
   io.to(socket.id).emit('createPlayer', socket.id);
 
   socket.on('addPlayers', function (data) {
@@ -56,7 +57,21 @@ io.on('connection', function(socket) {
       if (data.angle !== undefined) {
         player.angle = data.angle;
       }
-      
+      if (data.bullet !== undefined) {
+        let sectorIndex = config.sectors.findIndex(i => i.id === data.bullet.sector);
+        
+        player.bullets.push(new Bullet(
+          data.bullet.x,
+          data.bullet.y,
+          data.bullet.dx,
+          data.bullet.dy,
+          config.sectors[sectorIndex],
+          data.bullet.lifetime,
+          data.bullet.fireSpeed,
+          data.bullet.color,
+          player
+        ));
+      }
       config.players[playerIndex] = player;
     }
 
@@ -74,9 +89,22 @@ io.on('connection', function(socket) {
 });
 
 setInterval(function() {
-  io.sockets.emit('updateState', config.players);
+  io.sockets.emit('updateState', getPlayersObject());
 }, 1000);
 
+function getPlayersObject() {
+  let arr = [];
+  
+  for (let player of config.players) {
+    arr.push({
+      id: player.id,
+      x: player.x,
+      y: player.y
+    });
+  }
+  
+  return arr;
+};
 
 function init() {
   let vertices1 = [], vertices2 = [], vertices3 = [], vertices4 = [];

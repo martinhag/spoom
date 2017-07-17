@@ -117,9 +117,9 @@ module.exports = {
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var config = __webpack_require__(0);
-var vectorUtil = __webpack_require__(6);
+var vectorUtil = __webpack_require__(7);
 var Sector = __webpack_require__(2);
-var Bullet = __webpack_require__(7);
+var Bullet = __webpack_require__(5);
 
 module.exports = Player;
 
@@ -188,8 +188,25 @@ function Player(x, y, id) {
 
   this.fire = function () {
     if (this.lastBullet >= this.bulletDelay) {
-      this.bullets.push(new Bullet(this.x, this.y, Math.cos(this.angle) + this.x - this.x, Math.sin(this.angle) + this.y - this.y, this.getSector(), 60 * this.fireDelay, 5 * this.fireAddition, 'rgb(255,215,0)', this));
+      var bullet = new Bullet(this.x, this.y, Math.cos(this.angle) + this.x - this.x, Math.sin(this.angle) + this.y - this.y, this.getSector(), 60 * this.fireDelay, 5 * this.fireAddition, 'rgb(255,215,0)', this);
+
+      this.bullets.push(bullet);
       this.lastBullet = 0;
+
+      config.socket.emit('updatePlayer', {
+        bullet: {
+          x: bullet.x,
+          y: bullet.y,
+          dx: bullet.dx / bullet.fireSpeed,
+          dy: bullet.dy / bullet.fireSpeed,
+          radius: bullet.radius,
+          lifetime: bullet.lifetime,
+          fireSpeed: bullet.fireSpeed,
+          sector: this.getSector().id,
+          color: bullet.color
+        },
+        id: config.socket.id
+      });
     }
   };
 
@@ -207,7 +224,6 @@ function Player(x, y, id) {
       config.socket.emit('updatePlayer', {
         x: this.x,
         y: this.y,
-        angle: undefined,
         id: config.socket.id
       });
     }
@@ -221,8 +237,6 @@ function Player(x, y, id) {
     }
 
     config.socket.emit('updatePlayer', {
-      x: undefined,
-      y: undefined,
       angle: this.angle,
       id: config.socket.id
     });
@@ -407,10 +421,10 @@ function Player(x, y, id) {
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var config = __webpack_require__(0);
-var vectorUtil = __webpack_require__(6);
+var vectorUtil = __webpack_require__(7);
 var util = __webpack_require__(4);
 var Vertex = __webpack_require__(3);
-var Enemy = __webpack_require__(5);
+var Enemy = __webpack_require__(6);
 var Player = __webpack_require__(1);
 var RapidFire = __webpack_require__(8);
 
@@ -914,198 +928,13 @@ module.exports = {
 "use strict";
 
 
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
 var config = __webpack_require__(0);
 var util = __webpack_require__(4);
+var vectorUtil = __webpack_require__(7);
 var Vertex = __webpack_require__(3);
 var Sector = __webpack_require__(2);
 var Player = __webpack_require__(1);
-var Bullet = __webpack_require__(7);
-var RapidFire = __webpack_require__(8);
-
-module.exports = Enemy;
-
-function Enemy(x, y, hp, sector, id) {
-  this.x = x;
-  this.y = y;
-  this.color = 'yellow';
-  this.radius = config.enemyRadius;
-  this.id = id;
-
-  this.attackDelay = 140;
-  this.lastAttack = 0;
-  this.numberOfBullets = 9;
-  this.bullets = [];
-
-  this.hp = hp;
-  this.sector = sector;
-
-  this.hit = function () {
-    this.radius -= 5;
-    this.hp--;
-  };
-
-  this.update = function () {
-
-    if (this.lastAttack >= this.attackDelay && this.hp > 0) {
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
-
-      try {
-        for (var _iterator = this.getSector().players[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var player = _step.value;
-
-          this.attack();
-        }
-      } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
-          }
-        } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
-          }
-        }
-      }
-    }
-
-    var _iteratorNormalCompletion2 = true;
-    var _didIteratorError2 = false;
-    var _iteratorError2 = undefined;
-
-    try {
-      for (var _iterator2 = this.bullets.entries()[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-        var _ref = _step2.value;
-
-        var _ref2 = _slicedToArray(_ref, 2);
-
-        var index = _ref2[0];
-        var bullet = _ref2[1];
-
-        bullet.update();
-
-        if (bullet.lifetime <= 0) {
-          this.bullets.splice(index, 1);
-        }
-      }
-    } catch (err) {
-      _didIteratorError2 = true;
-      _iteratorError2 = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion2 && _iterator2.return) {
-          _iterator2.return();
-        }
-      } finally {
-        if (_didIteratorError2) {
-          throw _iteratorError2;
-        }
-      }
-    }
-
-    this.lastAttack++;
-  };
-
-  this.attack = function () {
-    var randomOffset = util.randomIntFromRange(-90, 90);
-
-    for (var i = 0; i < this.numberOfBullets; i++) {
-      var angle = 360 / this.numberOfBullets * (i + 1) * Math.PI / 180 + randomOffset;
-      var speed = util.randomIntFromRange(2, 4);
-
-      this.bullets.push(new Bullet(this.x, this.y, Math.cos(angle) * speed, Math.sin(angle) * speed, this.getSector(), 140, 1, 'red', this));
-    }
-    this.lastAttack = 0;
-  };
-
-  this.draw = function () {
-    config.c.beginPath();
-    config.c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-    config.c.fillStyle = this.color;
-    config.c.fill();
-    config.c.strokeStyle = 'black';
-    config.c.stroke();
-    config.c.closePath();
-  };
-
-  this.setSector = function (id) {
-    this.currentSector = id;
-  };
-
-  this.getSector = function () {
-    var _this = this;
-
-    return config.sectors.filter(function (sector) {
-      return sector.id === _this.sector;
-    })[0];
-  };
-};
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = {
-
-  // Utility Functions
-
-  //if input is higher than max or lower than min, return closest option
-  clamp: function clamp(input, min, max) {
-    return Math.min(Math.max(input, min), max);
-  },
-
-  //does the two boxes intersect?
-  intersectBox: function intersectBox(x0, y0, x1, y1, x2, y2, x3, y3) {
-    return this.overlap(x0, x1, x2, x3) && this.overlap(y0, y1, y2, y3);
-  },
-
-  //find out if number-ranges overlap. Used to determine intersects
-  overlap: function overlap(a0, a1, b0, b1) {
-    return Math.min(a0, a1) <= Math.max(b0, b1) && Math.min(b0, b1) <= Math.max(a0, a1);
-  },
-
-  vcp: function vcp(x0, y0, x1, y1) {
-    return x0 * y1 - x1 * y0;
-  },
-
-  pointSide: function pointSide(px, py, x0, y0, x1, y1) {
-    return this.vcp(x1 - x0, y1 - y0, px - x0, py - y0);
-  },
-
-  intersect: function intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
-    var pos = {};
-
-    pos.x = this.vcp(this.vcp(x1, y1, x2, y2), x1 - x2, this.vcp(x3, y3, x4, y4), x3 - x4) / this.vcp(x1 - x2, y1 - y2, x3 - x4, y3 - y4);
-
-    pos.y = this.vcp(this.vcp(x1, y1, x2, y2), y1 - y2, this.vcp(x3, y3, x4, y4), y3 - y4) / this.vcp(x1 - x2, y1 - y2, x3 - x4, y3 - y4);
-
-    return pos;
-  }
-};
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var config = __webpack_require__(0);
-var util = __webpack_require__(4);
-var vectorUtil = __webpack_require__(6);
-var Vertex = __webpack_require__(3);
-var Sector = __webpack_require__(2);
-var Player = __webpack_require__(1);
-var Enemy = __webpack_require__(5);
+var Enemy = __webpack_require__(6);
 
 module.exports = Bullet;
 
@@ -1130,6 +959,7 @@ function Bullet(x, y, dx, dy, sector, lifetime, fireSpeed, color, owner) {
     // } else {
     //   this.hitCheckPlayer();
     // }
+    // console.log(this.lifetime, this.owner);
 
     var vertices = this.sector.vertices;
     var neighbours = this.sector.neighbours;
@@ -1266,6 +1096,191 @@ function Bullet(x, y, dx, dy, sector, lifetime, fireSpeed, color, owner) {
     delete this;
   };
 }
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var config = __webpack_require__(0);
+var util = __webpack_require__(4);
+var Vertex = __webpack_require__(3);
+var Sector = __webpack_require__(2);
+var Player = __webpack_require__(1);
+var Bullet = __webpack_require__(5);
+var RapidFire = __webpack_require__(8);
+
+module.exports = Enemy;
+
+function Enemy(x, y, hp, sector, id) {
+  this.x = x;
+  this.y = y;
+  this.color = 'yellow';
+  this.radius = config.enemyRadius;
+  this.id = id;
+
+  this.attackDelay = 140;
+  this.lastAttack = 0;
+  this.numberOfBullets = 9;
+  this.bullets = [];
+
+  this.hp = hp;
+  this.sector = sector;
+
+  this.hit = function () {
+    this.radius -= 5;
+    this.hp--;
+  };
+
+  this.update = function () {
+
+    if (this.lastAttack >= this.attackDelay && this.hp > 0) {
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = this.getSector().players[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var player = _step.value;
+
+          this.attack();
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+    }
+
+    var _iteratorNormalCompletion2 = true;
+    var _didIteratorError2 = false;
+    var _iteratorError2 = undefined;
+
+    try {
+      for (var _iterator2 = this.bullets.entries()[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+        var _ref = _step2.value;
+
+        var _ref2 = _slicedToArray(_ref, 2);
+
+        var index = _ref2[0];
+        var bullet = _ref2[1];
+
+        bullet.update();
+
+        if (bullet.lifetime <= 0) {
+          this.bullets.splice(index, 1);
+        }
+      }
+    } catch (err) {
+      _didIteratorError2 = true;
+      _iteratorError2 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion2 && _iterator2.return) {
+          _iterator2.return();
+        }
+      } finally {
+        if (_didIteratorError2) {
+          throw _iteratorError2;
+        }
+      }
+    }
+
+    this.lastAttack++;
+  };
+
+  this.attack = function () {
+    var randomOffset = util.randomIntFromRange(-90, 90);
+
+    for (var i = 0; i < this.numberOfBullets; i++) {
+      var angle = 360 / this.numberOfBullets * (i + 1) * Math.PI / 180 + randomOffset;
+      var speed = util.randomIntFromRange(2, 4);
+
+      this.bullets.push(new Bullet(this.x, this.y, Math.cos(angle) * speed, Math.sin(angle) * speed, this.getSector(), 140, 1, 'red', this));
+    }
+    this.lastAttack = 0;
+  };
+
+  this.draw = function () {
+    config.c.beginPath();
+    config.c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+    config.c.fillStyle = this.color;
+    config.c.fill();
+    config.c.strokeStyle = 'black';
+    config.c.stroke();
+    config.c.closePath();
+  };
+
+  this.setSector = function (id) {
+    this.currentSector = id;
+  };
+
+  this.getSector = function () {
+    var _this = this;
+
+    return config.sectors.filter(function (sector) {
+      return sector.id === _this.sector;
+    })[0];
+  };
+};
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = {
+
+  // Utility Functions
+
+  //if input is higher than max or lower than min, return closest option
+  clamp: function clamp(input, min, max) {
+    return Math.min(Math.max(input, min), max);
+  },
+
+  //does the two boxes intersect?
+  intersectBox: function intersectBox(x0, y0, x1, y1, x2, y2, x3, y3) {
+    return this.overlap(x0, x1, x2, x3) && this.overlap(y0, y1, y2, y3);
+  },
+
+  //find out if number-ranges overlap. Used to determine intersects
+  overlap: function overlap(a0, a1, b0, b1) {
+    return Math.min(a0, a1) <= Math.max(b0, b1) && Math.min(b0, b1) <= Math.max(a0, a1);
+  },
+
+  vcp: function vcp(x0, y0, x1, y1) {
+    return x0 * y1 - x1 * y0;
+  },
+
+  pointSide: function pointSide(px, py, x0, y0, x1, y1) {
+    return this.vcp(x1 - x0, y1 - y0, px - x0, py - y0);
+  },
+
+  intersect: function intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+    var pos = {};
+
+    pos.x = this.vcp(this.vcp(x1, y1, x2, y2), x1 - x2, this.vcp(x3, y3, x4, y4), x3 - x4) / this.vcp(x1 - x2, y1 - y2, x3 - x4, y3 - y4);
+
+    pos.y = this.vcp(this.vcp(x1, y1, x2, y2), y1 - y2, this.vcp(x3, y3, x4, y4), y3 - y4) / this.vcp(x1 - x2, y1 - y2, x3 - x4, y3 - y4);
+
+    return pos;
+  }
+};
 
 /***/ }),
 /* 8 */
@@ -1432,7 +1447,8 @@ var inputHandler = __webpack_require__(9);
 var Player = __webpack_require__(1);
 var Vertex = __webpack_require__(3);
 var Sector = __webpack_require__(2);
-var Enemy = __webpack_require__(5);
+var Enemy = __webpack_require__(6);
+var Bullet = __webpack_require__(5);
 var config = __webpack_require__(0);
 
 config.socket = io();
@@ -1529,6 +1545,13 @@ config.socket.on('movePlayer', function (data) {
     }
     if (data.angle !== undefined) {
       player.angle = data.angle;
+    }
+    if (data.bullet !== undefined) {
+      var sectorIndex = config.sectors.findIndex(function (i) {
+        return i.id === data.bullet.sector;
+      });
+
+      player.bullets.push(new Bullet(data.bullet.x, data.bullet.y, data.bullet.dx, data.bullet.dy, config.sectors[sectorIndex], data.bullet.lifetime, data.bullet.fireSpeed, data.bullet.color, player));
     }
 
     config.players[playerIndex] = player;
@@ -1638,27 +1661,27 @@ function update() {
 
       sector.update();
 
-      var _iteratorNormalCompletion4 = true;
-      var _didIteratorError4 = false;
-      var _iteratorError4 = undefined;
+      var _iteratorNormalCompletion5 = true;
+      var _didIteratorError5 = false;
+      var _iteratorError5 = undefined;
 
       try {
-        for (var _iterator4 = sector.effects[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-          var effects = _step4.value;
+        for (var _iterator5 = sector.effects[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+          var effects = _step5.value;
 
           effects.update();
         }
       } catch (err) {
-        _didIteratorError4 = true;
-        _iteratorError4 = err;
+        _didIteratorError5 = true;
+        _iteratorError5 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion4 && _iterator4.return) {
-            _iterator4.return();
+          if (!_iteratorNormalCompletion5 && _iterator5.return) {
+            _iterator5.return();
           }
         } finally {
-          if (_didIteratorError4) {
-            throw _iteratorError4;
+          if (_didIteratorError5) {
+            throw _iteratorError5;
           }
         }
       }
@@ -1707,6 +1730,34 @@ function update() {
     inputHandler.handleInput();
     config.player.update();
   }
+
+  var _iteratorNormalCompletion4 = true;
+  var _didIteratorError4 = false;
+  var _iteratorError4 = undefined;
+
+  try {
+    for (var _iterator4 = config.players[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      var player = _step4.value;
+
+      if (player !== null && player.id !== config.player.id) {
+        // console.log('updating: ' + player.id, player.bullets);
+        player.update();
+      }
+    }
+  } catch (err) {
+    _didIteratorError4 = true;
+    _iteratorError4 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion4 && _iterator4.return) {
+        _iterator4.return();
+      }
+    } finally {
+      if (_didIteratorError4) {
+        throw _iteratorError4;
+      }
+    }
+  }
 }
 
 function draw() {
@@ -1714,74 +1765,25 @@ function draw() {
   // center "camera" over player
   config.c.translate(config.xView + config.canvas.width / 2, config.yView + config.canvas.height / 2);
 
-  var _iteratorNormalCompletion5 = true;
-  var _didIteratorError5 = false;
-  var _iteratorError5 = undefined;
-
-  try {
-    for (var _iterator5 = config.sectors[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-      var sector = _step5.value;
-
-      sector.draw();
-
-      var _iteratorNormalCompletion8 = true;
-      var _didIteratorError8 = false;
-      var _iteratorError8 = undefined;
-
-      try {
-        for (var _iterator8 = sector.effects[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-          var effects = _step8.value;
-
-          effects.draw();
-        }
-      } catch (err) {
-        _didIteratorError8 = true;
-        _iteratorError8 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion8 && _iterator8.return) {
-            _iterator8.return();
-          }
-        } finally {
-          if (_didIteratorError8) {
-            throw _iteratorError8;
-          }
-        }
-      }
-    }
-  } catch (err) {
-    _didIteratorError5 = true;
-    _iteratorError5 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion5 && _iterator5.return) {
-        _iterator5.return();
-      }
-    } finally {
-      if (_didIteratorError5) {
-        throw _iteratorError5;
-      }
-    }
-  }
-
   var _iteratorNormalCompletion6 = true;
   var _didIteratorError6 = false;
   var _iteratorError6 = undefined;
 
   try {
-    for (var _iterator6 = config.enemies[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-      var enemy = _step6.value;
+    for (var _iterator6 = config.sectors[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+      var sector = _step6.value;
+
+      sector.draw();
+
       var _iteratorNormalCompletion9 = true;
       var _didIteratorError9 = false;
       var _iteratorError9 = undefined;
 
       try {
-        for (var _iterator9 = enemy.bullets[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-          var bullet = _step9.value;
+        for (var _iterator9 = sector.effects[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+          var effects = _step9.value;
 
-          if (bullet.lifetime > 0) {
-            bullet.draw();
-          }
+          effects.draw();
         }
       } catch (err) {
         _didIteratorError9 = true;
@@ -1796,10 +1798,6 @@ function draw() {
             throw _iteratorError9;
           }
         }
-      }
-
-      if (enemy.hp > 0) {
-        enemy.draw();
       }
     }
   } catch (err) {
@@ -1822,38 +1820,37 @@ function draw() {
   var _iteratorError7 = undefined;
 
   try {
-    for (var _iterator7 = config.players[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-      var player = _step7.value;
+    for (var _iterator7 = config.enemies[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+      var enemy = _step7.value;
+      var _iteratorNormalCompletion10 = true;
+      var _didIteratorError10 = false;
+      var _iteratorError10 = undefined;
 
-      if (player !== null) {
-        var _iteratorNormalCompletion10 = true;
-        var _didIteratorError10 = false;
-        var _iteratorError10 = undefined;
+      try {
+        for (var _iterator10 = enemy.bullets[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+          var bullet = _step10.value;
 
-        try {
-          for (var _iterator10 = player.bullets[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-            var _bullet = _step10.value;
-
-            if (_bullet.lifetime > 0) {
-              _bullet.draw();
-            }
-          }
-        } catch (err) {
-          _didIteratorError10 = true;
-          _iteratorError10 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion10 && _iterator10.return) {
-              _iterator10.return();
-            }
-          } finally {
-            if (_didIteratorError10) {
-              throw _iteratorError10;
-            }
+          if (bullet.lifetime > 0) {
+            bullet.draw();
           }
         }
+      } catch (err) {
+        _didIteratorError10 = true;
+        _iteratorError10 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion10 && _iterator10.return) {
+            _iterator10.return();
+          }
+        } finally {
+          if (_didIteratorError10) {
+            throw _iteratorError10;
+          }
+        }
+      }
 
-        player.draw();
+      if (enemy.hp > 0) {
+        enemy.draw();
       }
     }
   } catch (err) {
@@ -1867,6 +1864,60 @@ function draw() {
     } finally {
       if (_didIteratorError7) {
         throw _iteratorError7;
+      }
+    }
+  }
+
+  var _iteratorNormalCompletion8 = true;
+  var _didIteratorError8 = false;
+  var _iteratorError8 = undefined;
+
+  try {
+    for (var _iterator8 = config.players[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+      var player = _step8.value;
+
+      if (player !== null) {
+        var _iteratorNormalCompletion11 = true;
+        var _didIteratorError11 = false;
+        var _iteratorError11 = undefined;
+
+        try {
+          for (var _iterator11 = player.bullets[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+            var _bullet = _step11.value;
+
+            if (_bullet.lifetime > 0) {
+              _bullet.draw();
+            }
+          }
+        } catch (err) {
+          _didIteratorError11 = true;
+          _iteratorError11 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion11 && _iterator11.return) {
+              _iterator11.return();
+            }
+          } finally {
+            if (_didIteratorError11) {
+              throw _iteratorError11;
+            }
+          }
+        }
+
+        player.draw();
+      }
+    }
+  } catch (err) {
+    _didIteratorError8 = true;
+    _iteratorError8 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion8 && _iterator8.return) {
+        _iterator8.return();
+      }
+    } finally {
+      if (_didIteratorError8) {
+        throw _iteratorError8;
       }
     }
   }

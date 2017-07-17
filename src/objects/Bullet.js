@@ -29,6 +29,7 @@ function Bullet (x, y, dx, dy, sector, lifetime, fireSpeed, color, owner) {
     // } else {
     //   this.hitCheckPlayer();
     // }
+    // console.log(this.lifetime, this.owner);
 
     let vertices = this.sector.vertices;
     let neighbours = this.sector.neighbours;

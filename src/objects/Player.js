@@ -6,7 +6,7 @@ var Bullet = require('./Bullet');
 module.exports = Player;
 
 // Player
-function Player (x, y, id) {
+function Player(x, y, id) {
   this.id = id;
   this.x = x;
   this.y = y;
@@ -44,20 +44,35 @@ function Player (x, y, id) {
 
   this.fire = function () {
     if (this.lastBullet >= this.bulletDelay) {
-      this.bullets.push(
-        new Bullet(
-          this.x,
-          this.y,
-          (Math.cos(this.angle) + (this.x)) - (this.x),
-          (Math.sin(this.angle) + (this.y)) - (this.y),
-          this.getSector(),
-          60 * this.fireDelay,
-          5 * this.fireAddition,
-          'rgb(255,215,0)',
-          this
-        )
+      let bullet = new Bullet(
+        this.x,
+        this.y,
+        (Math.cos(this.angle) + (this.x)) - (this.x),
+        (Math.sin(this.angle) + (this.y)) - (this.y),
+        this.getSector(),
+        60 * this.fireDelay,
+        5 * this.fireAddition,
+        'rgb(255,215,0)',
+        this
       );
+      
+      this.bullets.push(bullet);
       this.lastBullet = 0;
+
+      config.socket.emit('updatePlayer', {
+        bullet: {
+          x: bullet.x,
+          y: bullet.y,
+          dx: bullet.dx / bullet.fireSpeed,
+          dy: bullet.dy / bullet.fireSpeed,
+          radius: bullet.radius,
+          lifetime: bullet.lifetime,
+          fireSpeed: bullet.fireSpeed,
+          sector: this.getSector().id,
+          color: bullet.color
+        },
+        id: config.socket.id
+      });
     }
   };
 
@@ -75,7 +90,6 @@ function Player (x, y, id) {
       config.socket.emit('updatePlayer', {
         x: this.x,
         y: this.y,
-        angle: undefined,
         id: config.socket.id
       });
     }
@@ -89,8 +103,6 @@ function Player (x, y, id) {
     }
 
     config.socket.emit('updatePlayer', {
-      x: undefined,
-      y: undefined,
       angle: this.angle,
       id: config.socket.id
     });
@@ -100,28 +112,28 @@ function Player (x, y, id) {
     let vertices = this.getSector().vertices;
     let neighbours = this.getSector().neighbours;
 
-    for(let i = 0; i < vertices.length; i++){
-      let a = vertices[i], b = vertices[i+1];
+    for (let i = 0; i < vertices.length; i++) {
+      let a = vertices[i], b = vertices[i + 1];
 
       //Loop around for last corner
-      if (i == vertices.length-1) {
+      if (i == vertices.length - 1) {
         b = vertices[0];
       }
 
-      if( vectorUtil.intersectBox(this.x , this.y, (this.x )+vecAddition[0],(this.y )+vecAddition[1], a.x, a.y, b.x, b.y) &&
-        vectorUtil.pointSide((this.x )+vecAddition[0], (this.y )+vecAddition[1], a.x, a.y, b.x, b.y) < 0) {
+      if (vectorUtil.intersectBox(this.x, this.y, (this.x ) + vecAddition[0], (this.y ) + vecAddition[1], a.x, a.y, b.x, b.y) &&
+        vectorUtil.pointSide((this.x ) + vecAddition[0], (this.y ) + vecAddition[1], a.x, a.y, b.x, b.y) < 0) {
 
         // Check if its a neighbour sector on the other side of wall
-        for (let n of neighbours){
-          if(this.checkForPortal(n, vecAddition, a, b)) //did we hit a portal?
+        for (let n of neighbours) {
+          if (this.checkForPortal(n, vecAddition, a, b)) //did we hit a portal?
             return true;
         }
 
         //Bumps into a wall! Slide along the wall.
         // This formula is from Wikipedia article "vector projection".
         let xd = b.x - a.x, yd = b.y - a.y;
-        vecAddition[0] =  xd * (vecAddition[0]*xd + yd*vecAddition[1]) / (xd*xd + yd*yd);
-        vecAddition[1] =  yd * (vecAddition[0]*xd + yd*vecAddition[1]) / (xd*xd + yd*yd);
+        vecAddition[0] = xd * (vecAddition[0] * xd + yd * vecAddition[1]) / (xd * xd + yd * yd);
+        vecAddition[1] = yd * (vecAddition[0] * xd + yd * vecAddition[1]) / (xd * xd + yd * yd);
 
         // //will you slide past this wall? - Removed for now
         // if( (Math.min(a.x, b.x) > this.x+vecAddition[0] || this.x+vecAddition[0] > Math.max(a.x, b.x)) &&
@@ -148,8 +160,8 @@ function Player (x, y, id) {
       this.getSector().enterSector(this);
 
       //after changing sector, will you hit a wall?
-      if( (Math.min(a.x, b.x) > this.x+vecAddition[0] || this.x+vecAddition[0] > Math.max(a.x, b.x)) &&
-        (Math.min(a.y, b.y) > this.y+vecAddition[1] || this.y+vecAddition[1] > Math.max(a.y, b.y))  ){
+      if ((Math.min(a.x, b.x) > this.x + vecAddition[0] || this.x + vecAddition[0] > Math.max(a.x, b.x)) &&
+        (Math.min(a.y, b.y) > this.y + vecAddition[1] || this.y + vecAddition[1] > Math.max(a.y, b.y))) {
         //if so, stop player
         vecAddition[0] = 0;
         vecAddition[1] = 0;
@@ -194,7 +206,7 @@ function Player (x, y, id) {
       this.activeEffects['fire'].duration -= 1;
     } else {
       this.fireAddition = 1;
-      this.fireDelay= 1;
+      this.fireDelay = 1;
     }
   };
 
@@ -210,10 +222,10 @@ function Player (x, y, id) {
 
     config.c.save();
     config.c.beginPath();
-    config.c.translate( (this.x + this.width/2) - (this.width/2), (this.y + this.height/2) - (this.height/2));
+    config.c.translate((this.x + this.width / 2) - (this.width / 2), (this.y + this.height / 2) - (this.height / 2));
     config.c.rotate(this.angle);
     config.c.fillStyle = 'black';
-    config.c.rect(-this.width/2, -this.height/2, this.width, this.height);
+    config.c.rect(-this.width / 2, -this.height / 2, this.width, this.height);
     config.c.fill();
     config.c.stroke();
     config.c.closePath();
@@ -221,8 +233,8 @@ function Player (x, y, id) {
 
     //HP bar over player
     config.c.beginPath();
-    config.c.moveTo(this.x - this.width/2, this.y - this.height * 2.2);
-    config.c.lineTo(this.x + (this.width/2), this.y - this.height * 2.2);
+    config.c.moveTo(this.x - this.width / 2, this.y - this.height * 2.2);
+    config.c.lineTo(this.x + (this.width / 2), this.y - this.height * 2.2);
     config.c.strokeStyle = 'red';
     config.c.lineWidth = 3;
     config.c.stroke();
@@ -230,8 +242,8 @@ function Player (x, y, id) {
     config.c.lineWidth = 1;
 
     config.c.beginPath();
-    config.c.moveTo(this.x - this.width/2, this.y - this.height * 2.2);
-    config.c.lineTo(this.x  + ((this.width/this.maxHp) * this.hp) - this.width/2, this.y - this.height * 2.2);
+    config.c.moveTo(this.x - this.width / 2, this.y - this.height * 2.2);
+    config.c.lineTo(this.x + ((this.width / this.maxHp) * this.hp) - this.width / 2, this.y - this.height * 2.2);
     config.c.strokeStyle = 'green';
     config.c.lineWidth = 3;
     config.c.stroke();
